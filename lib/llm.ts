@@ -1,3 +1,5 @@
+import { previewMode, previewRoast } from "./preview.ts";
+
 type Message = { system: string; user: string };
 
 const PROVIDERS = {
@@ -14,6 +16,7 @@ export class LlmError extends Error {
 
 /** One function over a free-tier provider. Swap the provider here without touching the app. */
 export async function complete({ system, user }: Message): Promise<string> {
+  if (previewMode()) return previewRoast(system);
   const provider = (process.env.LLM_PROVIDER ?? "groq") as keyof typeof PROVIDERS;
   const config = PROVIDERS[provider];
   const key = process.env.LLM_API_KEY;
