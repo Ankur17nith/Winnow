@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Winnow: let your users pick the winning prompt",
   description: "Paste a README, get roasted, and vote. Every visitor silently tests a different prompt, and Flagsmith Experimentation finds the winner.",
   icons: { icon: "/icon.svg" },
+  openGraph: { title: "Winnow: let your users pick the winning prompt", description: "Paste a README, get roasted, vote grain or chaff. Flagsmith Experimentation finds the winning prompt.", type: "website", images: ["/api/card"] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
