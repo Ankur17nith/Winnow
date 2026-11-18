@@ -53,6 +53,7 @@ Next.js (TypeScript) on Vercel, Flagsmith Cloud with the Node SDK (`@flagsmith/n
 | [docs/experiment-design.md](docs/experiment-design.md) | Hypothesis, variants, prompts, metric, analysis plan |
 | [docs/flagsmith-setup.md](docs/flagsmith-setup.md) | Flag, metric and experiment setup with the CLI |
 | [docs/implementation.md](docs/implementation.md) | Step-by-step build guide with acceptance checks |
+| [docs/design.md](docs/design.md) | Visual design system: paper threshing floor, tokens, motion, graphics |
 | [docs/demo-script.md](docs/demo-script.md) | Video script and submission checklist |
 
 ## Quick start
