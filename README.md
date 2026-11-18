@@ -68,8 +68,7 @@ Setup of the Flagsmith side is in [docs/flagsmith-setup.md](docs/flagsmith-setup
 
 ## Contributors
 
-1. **[Ankur17nith](https://github.com/Ankur17nith)**: creator and main contributor
-2. **Claude** (Anthropic): AI pair-programmer, co-author
+**[Ankur17nith](https://github.com/Ankur17nith)**: creator and main contributor
 
 ## License
 
