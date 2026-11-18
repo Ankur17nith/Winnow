@@ -85,8 +85,21 @@ Dashboard: `https://app.flagsmith.com/project/<project id>/environment/<environm
 
 ## 7. Ship the winner
 
-Update the flag's value to the winning variant and end the experiment, so everyone gets the winner through the same
-flag. Record the decision and numbers in the README.
+1. End the experiment in the Flagsmith dashboard first (a running experiment locks the flag).
+2. Run `npm run results -- --environment <env key> --experiment <id>` to refresh `data/results.json`.
+3. Run `npm run ship -- --dry-run` to see the decision. If a variant qualifies, run `npm run ship`; you must type the
+   winner's name to approve. It runs `flagsmith flag update roast_prompt --weight <winner>=100,<others>=0`.
+4. Commit `data/results.json` and `data/decision.json`, and record the numbers in the README.
+
+The deployed app reads the standings from the committed `data/results.json`, so redeploy after updating it.
+
+## CLI facts (checked against the CLI's own `--help`)
+
+- `flagsmith api <path> --method POST` and `--input -` (JSON body from stdin) exist; `-F key=value` builds a body.
+- `flagsmith feature update` only changes description and archive state; re-weighting a multivariate flag is
+  `flagsmith flag update <feature> --weight key=N,key=N`.
+- The CLI can print an error to stderr and still exit 0, so the scripts treat empty output plus stderr as a failure.
+- Not verified against a live account: the exact JSON shape of the experiment results response (see `lib/results.ts`).
 
 ## Environment key for the app
 
