@@ -32,6 +32,7 @@ export const FLAG_PROMPT = "roast_prompt";
 export const FLAG_KILL_SWITCH = "roasts_enabled";
 export const EVENT_GRAIN = "thumbs_up";
 export const EVENT_CHAFF = "thumbs_down";
+export const EVENT_COPY = "copy";
 
 /** Is the app switched on? Falls open if Flagsmith is unreachable, so the demo never goes dark by accident. */
 export async function roastsEnabled(identity: string): Promise<boolean> {
@@ -51,6 +52,10 @@ export async function pickVariant(identity: string): Promise<string> {
   const flag = await getFlagsmith().getExperimentFlag(FLAG_PROMPT, identity);
   const key = (flag as { variant?: string }).variant ?? (typeof flag.value === "string" ? flag.value : "control");
   return key || "control";
+}
+
+export function trackEvent(identity: string, event: string): void {
+  getFlagsmith().trackEvent(event, { identifier: identity });
 }
 
 export function trackVote(identity: string, vote: "up" | "down"): void {
