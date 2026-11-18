@@ -66,3 +66,34 @@ test("results adapter normalises percentages and fails loudly on unknown shapes"
   assert.equal(s.variants[0].winProbability, 0.8);
   assert.throws(() => normalizeResults({ nope: 1 }, { simulated: false }), /Unrecognised results shape/);
 });
+
+const { createWinnow } = await import("../kit/winnow-kit.ts");
+const fakeFlagsmith = (variant?: string, boom = false) => {
+  const calls: string[] = [];
+  return {
+    calls,
+    getExperimentFlag: async () => {
+      if (boom) throw new Error("network");
+      return { variant, value: "control" };
+    },
+    trackEvent: (event: string, o?: { identifier?: string }) => calls.push(`${event}:${o?.identifier}`),
+    flushEvents: async () => void calls.push("flush"),
+  };
+};
+
+test("kit picks the flag's variant, tracks with the same identity and flushes", async () => {
+  const fs = fakeFlagsmith("friendly");
+  const w = createWinnow({ flagsmith: fs, flag: "p", prompts: { control: "A", friendly: "B" } });
+  const { variant, prompt } = await w.pick("u1");
+  assert.deepEqual([variant, prompt], ["friendly", "B"]);
+  w.track("u1", "thumbs_up");
+  await w.flush();
+  assert.deepEqual(fs.calls, ["thumbs_up:u1", "flush"]);
+});
+
+test("kit falls back on unknown variants and on errors", async () => {
+  const unknown = createWinnow({ flagsmith: fakeFlagsmith("nope"), flag: "p", prompts: { control: "A", friendly: "B" } });
+  assert.equal((await unknown.pick("u")).variant, "control");
+  const broken = createWinnow({ flagsmith: fakeFlagsmith(undefined, true), flag: "p", prompts: { control: "A", friendly: "B" }, fallback: "friendly" });
+  assert.equal((await broken.pick("u")).prompt, "B");
+});
