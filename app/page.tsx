@@ -7,12 +7,14 @@ const STEPS = [
   ["03", "Flagsmith names the winner", "A Bayesian engine turns votes into a win probability per prompt. The winner ships through the same flag."],
 ];
 
-export default function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ repo?: string }> }) {
+  const { repo } = await searchParams;
+  const initialRepo = typeof repo === "string" && /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/.test(repo) ? repo : undefined;
   return (
     <main>
       <header className="top">
         <a className="brand" href="/" aria-label="Winnow home"><SieveRing /> <span>WINN<b>O</b>W</span></a>
-        <a className="btn small" href="#how">How it works</a>
+        <nav className="nav"><a className="btn small" href="#how">How it works</a> <a className="btn small" href="/race">The race</a></nav>
       </header>
 
       <section className="hero">
@@ -28,7 +30,7 @@ export default function Home() {
         </p>
       </section>
 
-      <Roaster />
+      <Roaster initialRepo={initialRepo} />
 
       <section className="band" aria-label="Disclosure">
         <p>This page runs a live A/B test of prompts. Votes are anonymous and tied only to a random cookie.</p>
