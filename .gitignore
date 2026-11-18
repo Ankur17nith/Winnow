@@ -6,3 +6,5 @@ flagsmith.env
 *.log
 .vercel/
 .DS_Store
+next-env.d.ts
+*.tsbuildinfo
