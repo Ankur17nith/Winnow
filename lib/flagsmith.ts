@@ -1,4 +1,4 @@
-import Flagsmith from "@flagsmith/nodejs";
+import { Flagsmith } from "@flagsmith/nodejs";
 
 /**
  * Server-side Flagsmith client with Experimentation events enabled.
