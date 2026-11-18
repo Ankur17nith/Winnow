@@ -97,3 +97,23 @@ test("kit falls back on unknown variants and on errors", async () => {
   const broken = createWinnow({ flagsmith: fakeFlagsmith(undefined, true), flag: "p", prompts: { control: "A", friendly: "B" }, fallback: "friendly" });
   assert.equal((await broken.pick("u")).prompt, "B");
 });
+
+const { guardRequest, clientIp } = await import("../lib/guard.ts");
+const { takeIpQuota } = await import("../lib/limits.ts");
+const req = (headers: Record<string, string>) => new Request("http://localhost/api/roast", { method: "POST", headers });
+
+test("guard: same-origin and body size", () => {
+  assert.doesNotThrow(() => guardRequest(req({ host: "winnow.app" })));
+  assert.doesNotThrow(() => guardRequest(req({ host: "winnow.app", origin: "https://winnow.app" })));
+  assert.throws(() => guardRequest(req({ host: "winnow.app", origin: "https://evil.com" })), InputError);
+  assert.throws(() => guardRequest(req({ host: "winnow.app", "content-length": "999999" })), InputError);
+  assert.equal(clientIp(req({ "x-forwarded-for": "1.2.3.4, 5.6.7.8" })), "1.2.3.4");
+  assert.equal(clientIp(req({})), "unknown");
+});
+
+test("per-IP quota caps a day", () => {
+  const now = new Date("2026-11-19T00:00:00Z");
+  let ok = 0;
+  for (let i = 0; i < 40; i++) if (takeIpQuota("9.9.9.9", now)) ok++;
+  assert.equal(ok, 30);
+});

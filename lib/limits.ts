@@ -59,3 +59,20 @@ export function takeQuota(identity: string, now = new Date()): boolean {
   entry.count += 1;
   return true;
 }
+
+/** Per-IP daily cap, so clearing cookies does not reset the per-visitor cap. Best effort on serverless. */
+const IP_LIMIT = Number(process.env.ROASTS_PER_IP_PER_DAY ?? 30);
+const ips = new Map<string, { day: string; count: number }>();
+
+export function takeIpQuota(ip: string, now = new Date()): boolean {
+  const day = now.toISOString().slice(0, 10);
+  const entry = ips.get(ip);
+  if (!entry || entry.day !== day) {
+    if (ips.size > 20_000) ips.clear();
+    ips.set(ip, { day, count: 1 });
+    return true;
+  }
+  if (entry.count >= IP_LIMIT) return false;
+  entry.count += 1;
+  return true;
+}
