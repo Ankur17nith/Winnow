@@ -1,4 +1,5 @@
 import { Flagsmith } from "@flagsmith/nodejs";
+import { previewMode, previewVariant } from "./preview.ts";
 
 /**
  * Server-side Flagsmith client with Experimentation events enabled.
@@ -36,6 +37,7 @@ export const EVENT_COPY = "copy";
 
 /** Is the app switched on? Falls open if Flagsmith is unreachable, so the demo never goes dark by accident. */
 export async function roastsEnabled(identity: string): Promise<boolean> {
+  if (previewMode()) return true;
   try {
     const flags = await getFlagsmith().getIdentityFlags(identity);
     return flags.isFeatureEnabled(FLAG_KILL_SWITCH);
@@ -49,21 +51,25 @@ export async function roastsEnabled(identity: string): Promise<boolean> {
  * so call it only when a roast is actually served.
  */
 export async function pickVariant(identity: string): Promise<string> {
+  if (previewMode()) return previewVariant(identity);
   const flag = await getFlagsmith().getExperimentFlag(FLAG_PROMPT, identity);
   const key = (flag as { variant?: string }).variant ?? (typeof flag.value === "string" ? flag.value : "control");
   return key || "control";
 }
 
 export function trackEvent(identity: string, event: string): void {
+  if (previewMode()) return;
   getFlagsmith().trackEvent(event, { identifier: identity });
 }
 
 export function trackVote(identity: string, vote: "up" | "down"): void {
+  if (previewMode()) return;
   getFlagsmith().trackEvent(vote === "up" ? EVENT_GRAIN : EVENT_CHAFF, { identifier: identity });
 }
 
 /** Serverless functions can freeze after responding, so send buffered events before returning. */
 export async function flushEvents(): Promise<void> {
+  if (previewMode()) return;
   try {
     await getFlagsmith().flushEvents();
   } catch (err) {
