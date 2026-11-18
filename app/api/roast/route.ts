@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { flushEvents, pickVariant, roastsEnabled } from "@/lib/flagsmith";
 import { IDENTITY_COOKIE, newIdentity, readIdentity, signRoastToken } from "@/lib/identity";
-import { InputError, checkLength, fetchReadme, parseRepoUrl, takeQuota } from "@/lib/limits";
+import { clientIp, guardRequest } from "@/lib/guard";
+import { InputError, checkLength, fetchReadme, parseRepoUrl, takeIpQuota, takeQuota } from "@/lib/limits";
 import { LlmError, complete } from "@/lib/llm";
 import { promptFor } from "@/lib/prompts";
 
@@ -10,6 +11,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  try {
+    guardRequest(request);
+  } catch (err) {
+    const e = err as InputError;
+    return NextResponse.json({ error: e.message }, { status: e.status });
+  }
   const jar = await cookies();
   let identity = readIdentity(jar.get(IDENTITY_COOKIE)?.value);
   if (!identity) {
@@ -42,7 +49,7 @@ export async function POST(request: Request) {
       throw new InputError("Paste a README or a GitHub repo link.", 400);
     }
 
-    if (!takeQuota(identity)) {
+    if (!takeIpQuota(clientIp(request)) || !takeQuota(identity)) {
       return NextResponse.json({ error: "That is today's limit of roasts. Come back tomorrow." }, { status: 429 });
     }
 

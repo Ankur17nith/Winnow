@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { EVENT_COPY, flushEvents, trackEvent, trackVote } from "@/lib/flagsmith";
+import { guardRequest } from "@/lib/guard";
 import { IDENTITY_COOKIE, readIdentity, verifyRoastToken } from "@/lib/identity";
 import { readStandings } from "@/lib/standings";
 
@@ -12,6 +13,12 @@ const done = new Set<string>();
 const ACTIONS = ["up", "down", "copy"] as const;
 
 export async function POST(request: Request) {
+  try {
+    guardRequest(request);
+  } catch (err) {
+    const e = err as { message: string; status: number };
+    return NextResponse.json({ error: e.message }, { status: e.status });
+  }
   const jar = await cookies();
   const identity = readIdentity(jar.get(IDENTITY_COOKIE)?.value);
   const body = (await request.json().catch(() => ({}))) as { roastId?: unknown; vote?: unknown };
