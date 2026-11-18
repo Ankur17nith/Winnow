@@ -131,4 +131,11 @@ Check: experiment status `running`, exposures increasing.
 
 ## Deviations from the docs
 
-_(Record SDK name or signature differences found while implementing, with the exact source.)_
+- `@flagsmith/nodejs` 9.4.0 exports `Flagsmith` as a **named** export (`import { Flagsmith } from "@flagsmith/nodejs"`).
+  `getExperimentFlag`, `trackEvent`, `flushEvents`, `close` and `Flag.variant` were confirmed in the package's type
+  definitions. The events API URL is set through `eventProcessorConfig.eventsApiUrl`.
+- Preview mode (`WINNOW_PREVIEW=1`) runs the whole app with no keys, for development and demo rehearsal. It sends nothing
+  anywhere and labels roasts `[preview]`.
+- Standings are read from `data/results.json`, written by `npm run results` on the developer's machine (no admin key
+  in the app).
+- Not verified yet: the experiment results response shape, and event delivery from a Vercel function.
