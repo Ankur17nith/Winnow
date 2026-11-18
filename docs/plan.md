@@ -73,6 +73,21 @@ numbers are real and which are simulated.
 | Abuse or prompt injection from README content | Treat the README as untrusted data, cap length, never echo secrets. See architecture. |
 | Docs unverified (API names or versions) | Confirm against docs.flagsmith.com when implementing; mark deviations in implementation.md. |
 
+## Build status
+
+- [x] Backend: identity, flags, prompts, limits, LLM client, roast and feedback routes, tests
+- [x] Frontend: threshing-floor theme, roaster, reveal after vote, copy, share card, race page
+- [x] Scripts: results snapshot, approval-gated ship, rehearsal simulator
+- [x] `winnow-kit` with tests
+- [x] Keyless preview mode
+- [ ] Flagsmith project, flag, metric and experiment created (needs the account)
+- [ ] LLM key, `.env.local`, end-to-end test with real keys
+- [ ] Deploy to Vercel and check that events arrive from a serverless function
+- [ ] Real traffic, results, winner decision
+- [ ] Demo video and submission
+- Cut from scope: the public opt-in roast wall (needs storage and moderation). Replaced by shareable
+  `/?repo=<github url>` links.
+
 ## Definition of done
 
 - [ ] Public URL works end to end

@@ -25,7 +25,7 @@ version users actually prefer.
 - **Shareable roast cards:** post your roast as an image.
 - **The flag ships its own winner:** a script checks the decision rule and proposes the rollout. A human approves it.
 - **`winnow-kit`:** A/B test your own prompts through Flagsmith in about 10 lines.
-- **Opt-in hackathon roast wall:** nobody is roasted without asking.
+- **Roast-my-repo links:** share `/?repo=https://github.com/owner/repo` so only people who ask get roasted.
 
 ## The experiment
 
@@ -62,15 +62,18 @@ Next.js (TypeScript) on Vercel, Flagsmith Cloud with the Node SDK (`@flagsmith/n
 | [docs/flagsmith-setup.md](docs/flagsmith-setup.md) | Flag, metric and experiment setup with the CLI |
 | [docs/implementation.md](docs/implementation.md) | Step-by-step build guide with acceptance checks |
 | [docs/design.md](docs/design.md) | Visual design system: paper threshing floor, tokens, motion, graphics |
+| [kit/README.md](kit/README.md) | winnow-kit: A/B test any prompt through Flagsmith |
 | [docs/demo-script.md](docs/demo-script.md) | Video script and submission checklist |
 
 ## Quick start
 
 ```bash
-cp .env.example .env.local   # fill in values
 npm install
-npm run dev
+WINNOW_PREVIEW=1 COOKIE_SECRET=any-long-secret-here npm run dev   # no keys needed
 ```
+
+For the real experiment, copy `.env.example` to `.env.local`, fill it in, and drop `WINNOW_PREVIEW`.
+Other commands: `npm test`, `npm run lint`, `npm run results`, `npm run ship`, `npm run simulate`.
 
 Setup of the Flagsmith side is in [docs/flagsmith-setup.md](docs/flagsmith-setup.md). Status: see the checklist in
 [docs/plan.md](docs/plan.md).
