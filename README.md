@@ -66,6 +66,11 @@ npm run dev
 Setup of the Flagsmith side is in [docs/flagsmith-setup.md](docs/flagsmith-setup.md). Status: see the checklist in
 [docs/plan.md](docs/plan.md).
 
+## Contributors
+
+1. **[Ankur17nith](https://github.com/Ankur17nith)**: creator and main contributor
+2. **Claude** (Anthropic): AI pair-programmer, co-author
+
 ## License
 
 MIT
