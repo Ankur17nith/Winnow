@@ -9,10 +9,10 @@ type Reveal = { variant: string; standings: { updatedAt: string; simulated: bool
 type Phase = "idle" | "loading" | "done";
 const MAX = 12000;
 
-export default function Roaster() {
-  const [mode, setMode] = useState<"paste" | "url">("paste");
+export default function Roaster({ initialRepo }: { initialRepo?: string }) {
+  const [mode, setMode] = useState<"paste" | "url">(initialRepo ? "url" : "paste");
   const [text, setText] = useState("");
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(initialRepo ?? "");
   const [phase, setPhase] = useState<Phase>("idle");
   const [roast, setRoast] = useState("");
   const [roastId, setRoastId] = useState("");
