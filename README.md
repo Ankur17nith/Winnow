@@ -19,6 +19,14 @@ version users actually prefer.
 4. Flagsmith's Bayesian engine reports each prompt's **win probability**.
 5. The winning prompt is rolled out to everyone **through the same flag**, with no redeploy.
 
+## What makes it different
+
+- **Reveal after you vote:** you see which prompt you tasted and the live standings, so voting is a game.
+- **Shareable roast cards:** post your roast as an image.
+- **The flag ships its own winner:** a script checks the decision rule and proposes the rollout. A human approves it.
+- **`winnow-kit`:** A/B test your own prompts through Flagsmith in about 10 lines.
+- **Opt-in hackathon roast wall:** nobody is roasted without asking.
+
 ## The experiment
 
 | | |

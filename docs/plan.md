@@ -27,8 +27,19 @@ a flag, a metric from real events, and results you can explain.
 7. Real traffic (shared publicly) plus a simulated-traffic script as a fallback.
 8. Demo video (about 2 minutes), written results explanation, public repo.
 
+**Added scope (the "10/10" upgrade)**
+9. **Reveal after vote:** after voting, show which prompt the visitor got and the live standings. This makes voting a
+   game, drives sharing, and brings in real votes. The variant stays hidden until the vote is cast.
+10. **Shareable roast card:** an image of the roast with the Winnow wordmark, ready to post.
+11. **Secondary signals:** `copy` event tracked alongside `thumbs_up`. `thumbs_down` is a guardrail, not a metric.
+12. **Live race page `/race`:** three piles of grain with win probabilities from a results snapshot.
+13. **Approval-gated auto-ship:** `scripts/ship-winner.sh` checks the decision rule and proposes the rollout. A human
+    approves; nothing ships on its own.
+14. **`winnow-kit`:** a tiny reusable module so any developer can A/B test their own prompts through Flagsmith.
+15. **Hackathon roast wall (opt-in only):** participants can submit their own repo to be roasted. Nobody is roasted
+    without asking.
+
 **Stretch (only if time allows)**
-- `/results` page rendering a results snapshot (`data/results.json`, refreshed by script via the CLI).
 - Plain-English "why did this win" summary.
 - Secondary metric (`copy`).
 
