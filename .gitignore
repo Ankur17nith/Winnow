@@ -8,3 +8,4 @@ flagsmith.env
 .DS_Store
 next-env.d.ts
 *.tsbuildinfo
+data/results.raw.json

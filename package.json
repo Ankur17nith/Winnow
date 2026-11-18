@@ -10,7 +10,9 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "test": "node --experimental-strip-types --test test/*.test.ts",
-    "simulate": "node --experimental-strip-types scripts/simulate-traffic.ts"
+    "simulate": "node --experimental-strip-types scripts/simulate-traffic.ts",
+    "results": "node --experimental-strip-types scripts/fetch-results.ts",
+    "ship": "node --experimental-strip-types scripts/ship-winner.ts"
   },
   "dependencies": {
     "@flagsmith/nodejs": "^9.4.0",
