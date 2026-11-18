@@ -2,7 +2,8 @@
 
 ## Question
 
-Which roast style do visitors like most, measured by how often they give a 👍?
+**Do developers want AI feedback kind, brutal or actionable?** Measured by how often a visitor marks the roast
+as grain (`thumbs_up`). The answer is the finding we report, not just a winner.
 
 ## Hypothesis
 
@@ -39,7 +40,9 @@ Alternatives.)
 | Aggregation | `occurrence` (did this identity ever trigger the event) |
 | Direction | `up` |
 
-`thumbs_down` is tracked for context but is not a metric.
+`thumbs_down` is a guardrail and `copy` a secondary signal. Neither is the primary metric. If the leading variant also
+gets many `thumbs_down`, say so in the write-up.
+(Check the Flagsmith docs for how many metrics one experiment supports before relying on a second metric.)
 
 ## Traffic
 
@@ -54,6 +57,13 @@ Alternatives.)
    least **~30 exposures per arm**. Otherwise report "no clear winner yet" and say so plainly.
 3. Report real numbers separately from simulated rehearsal traffic.
 4. Roll the winner out by changing the flag, so the winner becomes the value everyone gets.
+
+## Statistical honesty
+
+- **Peeking:** checking results often and stopping when a number looks good inflates false wins. The decision rule above is
+  fixed in advance and stated on the results page.
+- **Three arms need more traffic than two.** If votes are thin by the midpoint, drop one arm, restart, and say so.
+- **Reveal after vote** shows the variant only after the vote is cast, so the vote is never influenced by it.
 
 ## Known limitations (to state in the write-up)
 
