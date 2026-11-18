@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "The race · Winnow", description: "T
 export const dynamic = "force-dynamic";
 
 const COLOR: Record<string, string> = { control: "var(--sea)", savage: "var(--rescue)", actionable: "var(--mint)" };
-const KERNELS_MAX = 20;
+const KERNELS_MAX = 56;
 
 export default async function Race() {
   const standings = await readStandings();
