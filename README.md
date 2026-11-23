@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Ankur17nith/Winnow/actions/workflows/ci.yml/badge.svg)](https://github.com/Ankur17nith/Winnow/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-12%20passing-brightgreen)](#tests-and-checks)
+[![Tests](https://img.shields.io/badge/tests-13%20passing-brightgreen)](#tests-and-checks)
 [![Flagsmith](https://img.shields.io/badge/built%20with-Flagsmith%20Experimentation-7b5cff)](https://docs.flagsmith.com/experimentation)
 [![Hackathon](https://img.shields.io/badge/WeMakeDevs%20x%20Flagsmith-Track%2001%3A%20Test%20Something%20Real-black)](https://www.wemakedevs.org/hackathons/flagsmith)
 
@@ -27,9 +27,9 @@ LLM (Groq) writes the roasts. Nothing else is involved: no database, no accounts
 
 | At a glance | Value | Source |
 | --- | --- | --- |
-| Automated tests, all passing | 12 | `npm test` |
+| Automated tests, all passing | 13 | `npm test` |
 | Prompt variants under test | 3 (`control`, `savage`, `actionable`) | [lib/prompts.ts](lib/prompts.ts) |
-| Primary metric | `thumbs_up` (occurrence, direction up) | [docs/experiment-design.md](docs/experiment-design.md) |
+| Primary metric | `thumbs_up` (occurrence, direction up), plus `roast_again` and `roast_requested` | [docs/experiment-design.md](docs/experiment-design.md) |
 | Decision rule, fixed in advance | win probability at least 90% and 30 visitors per arm | [lib/decision.ts](lib/decision.ts) |
 | Real experiment results | **none yet**: the experiment has not been started | see [Status](#status) |
 
@@ -58,7 +58,7 @@ No keys needed.
 
 ```bash
 npm install
-npm test                       # 12 tests
+npm test                       # 13 tests
 npm run lint                   # type check
 WINNOW_PREVIEW=1 COOKIE_SECRET=any-long-secret-here npm run dev
 ```
@@ -117,7 +117,7 @@ after `flagsmith login`. The deployed app never holds an admin key. More detail:
 | --- | --- |
 | Flag | `roast_prompt`, multivariate, string values, every variation keyed |
 | Variants | `control` (friendly), `savage` (comedic and brutal), `actionable` (scorecard plus fixes) |
-| Metric | `thumbs_up`, occurrence, direction up. `thumbs_down` is a guardrail and `copy` a secondary signal |
+| Metrics | `thumbs_up` (primary), `roast_again` (early signal), `roast_requested` (sanity check). `thumbs_down` is a guardrail, `copy` secondary |
 | Split | about 34 / 33 / 33, 100% of visitors enrolled |
 | Identity | signed anonymous cookie, the same ID for exposure and conversion |
 | Decision rule | ship at 90% win probability with 30 visitors in every arm, otherwise report "no clear winner" |
@@ -160,7 +160,7 @@ Full list in [SECURITY.md](SECURITY.md). In short:
 
 ## Tests and checks
 
-- `npm test`: 12 tests covering identity signing and tamper rejection, token expiry, prompt fallback, the URL allow-list,
+- `npm test`: 13 tests covering identity signing and tamper rejection, token expiry, prompt fallback, the URL allow-list,
   length and per-IP caps, request guards, the decision rule, the results adapter and `winnow-kit`.
 - `npm run lint` and `npm run build` run in [CI](.github/workflows/ci.yml) on every push.
 - Manual, done: the full roast, vote and reveal flow in a real browser (desktop and phone width), the production build's

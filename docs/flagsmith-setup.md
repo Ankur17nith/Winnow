@@ -48,13 +48,25 @@ EOF
 
 The event name is case-sensitive and must equal the string the code sends.
 
+Create two more metrics the same way (same body, change `name` and `event`), so there are three in total:
+
+| Metric name | Event | Role |
+|---|---|---|
+| `Roast liked` | `thumbs_up` | Primary. Fires after a vote. |
+| `Roasted again` | `roast_again` | Early signal: the visitor came back for a second roast. Separates prompts. |
+| `Roast requested` | `roast_requested` | Sanity check only. It fires for every served roast, so it is near 100% in every arm. |
+
+Note the id of each metric: the experiment in the next step lists them in its `metrics` array.
+
 ## 4. Create the experiment (do not start it)
 
 ```bash
 flagsmith api api/v1/environments/<environment key>/experiments/ --input - <<'EOF'
 {"feature": <flag id>, "name": "Winnow roast prompt",
  "hypothesis": "The actionable prompt earns more thumbs-up than control or savage.",
- "metrics": [{"metric": <metric id>, "expected_direction": "increase"}],
+ "metrics": [{"metric": <Roast liked id>, "expected_direction": "increase"},
+              {"metric": <Roasted again id>, "expected_direction": "increase"},
+              {"metric": <Roast requested id>, "expected_direction": "increase"}],
  "experiment_rollout": {"enabled": true, "rollout_percentage": 100,
    "feature_state_value": {"type": "string", "value": "control"},
    "multivariate_feature_state_values": [

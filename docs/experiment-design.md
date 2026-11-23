@@ -40,7 +40,9 @@ Alternatives.)
 | Aggregation | `occurrence` (did this identity ever trigger the event) |
 | Direction | `up` |
 
-`thumbs_down` is a guardrail and `copy` a secondary signal. Neither is the primary metric. If the leading variant also
+`roast_again` (a second roast by the same visitor) is the early-firing signal, as the track advises picking a metric that fires
+early in a visit. `roast_requested` fires for every served roast, so it is near 100% in every arm and is only a sanity
+check. `thumbs_down` is a guardrail and `copy` a secondary signal. Neither is the primary metric. If the leading variant also
 gets many `thumbs_down`, say so in the write-up.
 (Check the Flagsmith docs for how many metrics one experiment supports before relying on a second metric.)
 
