@@ -117,3 +117,12 @@ test("per-IP quota caps a day", () => {
   for (let i = 0; i < 40; i++) if (takeIpQuota("9.9.9.9", now)) ok++;
   assert.equal(ok, 30);
 });
+
+const { parseRoastCount } = await import("../lib/engagement.ts");
+test("roast counter cookie parsing is safe", () => {
+  assert.equal(parseRoastCount(undefined), 0);
+  assert.equal(parseRoastCount("3"), 3);
+  assert.equal(parseRoastCount("abc"), 0);
+  assert.equal(parseRoastCount("-5"), 0);
+  assert.equal(parseRoastCount("99999"), 0);
+});

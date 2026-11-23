@@ -34,6 +34,10 @@ export const FLAG_KILL_SWITCH = "roasts_enabled";
 export const EVENT_GRAIN = "thumbs_up";
 export const EVENT_CHAFF = "thumbs_down";
 export const EVENT_COPY = "copy";
+/** Fires for every served roast: a sanity check on engagement, not a metric that can separate prompts. */
+export const EVENT_REQUESTED = "roast_requested";
+/** Fires when a visitor roasts a second time: an early signal that the first roast was worth coming back for. */
+export const EVENT_AGAIN = "roast_again";
 
 /** Is the app switched on? Falls open if Flagsmith is unreachable, so the demo never goes dark by accident. */
 export async function roastsEnabled(identity: string): Promise<boolean> {

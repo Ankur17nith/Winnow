@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { flushEvents, pickVariant, roastsEnabled } from "@/lib/flagsmith";
+import { ROAST_COUNT_COOKIE, parseRoastCount } from "@/lib/engagement";
+import { EVENT_AGAIN, EVENT_REQUESTED, flushEvents, pickVariant, roastsEnabled, trackEvent } from "@/lib/flagsmith";
 import { IDENTITY_COOKIE, newIdentity, readIdentity, signRoastToken } from "@/lib/identity";
 import { clientIp, guardRequest } from "@/lib/guard";
 import { InputError, checkLength, fetchReadme, parseRepoUrl, takeIpQuota, takeQuota } from "@/lib/limits";
@@ -56,6 +57,18 @@ export async function POST(request: Request) {
     // The exposure is recorded here, and only here: a roast is actually being served.
     const { variant, system } = promptFor(await pickVariant(identity));
     const roast = await complete({ system, user: `<readme>\n${readme}\n</readme>` });
+
+    // Early-visit events. roast_requested is a sanity check; roast_again separates prompts (the first roast brought them back).
+    const served = parseRoastCount(jar.get(ROAST_COUNT_COOKIE)?.value);
+    trackEvent(identity, EVENT_REQUESTED);
+    if (served >= 1) trackEvent(identity, EVENT_AGAIN);
+    jar.set(ROAST_COUNT_COOKIE, String(served + 1), {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 180,
+    });
     await flushEvents();
 
     // The variant is signed into the token but never returned in the clear.
