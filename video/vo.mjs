@@ -6,7 +6,7 @@
 //   node video/vo.mjs --results "After 120 visitors, actionable is at 93 percent to win."
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const key = process.env.ELEVENLABS_API_KEY;
 if (!key) throw new Error("ELEVENLABS_API_KEY is not set.");
@@ -26,11 +26,12 @@ const results = arg("results");
 const rows = readFileSync(new URL("./script.md", import.meta.url), "utf8").split("\n")
   .filter((r) => /^\| \d+R? \|/.test(r))
   .map((r) => r.split("|").map((c) => c.trim()))
-  .map((c) => ({ scene: c[1], voice: c[3], text: c[5] }));
+  .map((c) => ({ scene: c[1], voice: c[2], text: c[4] }));
 
 const lines = rows.filter((r) => !r.scene.endsWith("R"));
 if (results) lines.splice(lines.findIndex((l) => l.scene === "6") + 1, 0, { scene: "6R", voice: "US", text: results });
 
+// Budget guard: print what would be billed before spending anything.
 const dir = new URL("./work/vo/", import.meta.url);
 mkdirSync(dir, { recursive: true });
 const manifestUrl = new URL("manifest.json", dir);
@@ -42,7 +43,9 @@ for (const line of lines) {
   if (only && line.voice !== only) continue;
   const text = v.tag + line.text;
   const hash = createHash("sha256").update(`${v.id}|${v.model}|${text}`).digest("hex").slice(0, 12);
-  const file = new URL(`${line.scene}-${hash}.mp3`, dir);
+  // Clips are addressed by their content, so renumbering scenes never re-bills an unchanged line.
+  const reuse = readdirSync(dir).find((f) => f.endsWith(`-${hash}.mp3`));
+  const file = new URL(reuse ?? `${line.scene}-${hash}.mp3`, dir);
   if (!existsSync(file)) {
     const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${v.id}?output_format=mp3_44100_128`, {
       method: "POST",
