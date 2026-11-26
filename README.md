@@ -8,6 +8,8 @@
 
 **Let your users pick the winning prompt.**
 
+![Winnow home page: "Paste your README. Get roasted." with the README input and the winnowing basket](docs/assets/home.png)
+
 Winnow is a README roaster that runs a real A/B test on LLM prompts. Every visitor silently gets one of three roast
 prompts from a multivariate Flagsmith flag. They vote **grain** (keep it) or **chaff** (toss it), and Flagsmith's Bayesian
 engine says which prompt wins. The winner ships through the same flag, with no redeploy, and only after a human approves it.
