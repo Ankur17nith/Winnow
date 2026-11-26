@@ -1,5 +1,7 @@
 # Plan
 
+> **Kept as a record.** Written on 18 Nov, when the deadline was thought to be 19 Nov. Not maintained; where it disagrees with the code, the code is right. Current state: [STATUS.md](STATUS.md).
+
 ## Goal
 
 Win Track 01 (Test Something Real) by running a **real** A/B test of LLM prompts, with real visitors and real events, and

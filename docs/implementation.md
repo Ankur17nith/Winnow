@@ -1,5 +1,7 @@
 # Implementation guide
 
+> **Kept as a record.** Written on 18 Nov as the build guide. Not maintained; where it disagrees with the code, the code is right. How it works now: [architecture.md](architecture.md).
+
 Build in this order. Each step has an acceptance check; do not move on until it passes. If something fails, stop and
 record the exact error. Commit after each step, small and on `main`.
 

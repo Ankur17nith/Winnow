@@ -1,5 +1,7 @@
 # Flagsmith setup
 
+> **Kept as a record.** Written on 18 Nov, before `npm run setup:flagsmith` existed. Not maintained; where it disagrees with the code, the code is right. The current path: [human-runbook.md](human-runbook.md) §2.
+
 Follow the official guides while doing this and note any difference in `docs/implementation.md`:
 - https://docs.flagsmith.com/experimentation/run-an-experiment
 - https://docs.flagsmith.com/experimentation/set-up-with-a-coding-agent
