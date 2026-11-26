@@ -35,7 +35,7 @@ LLM (Groq) writes the roasts. Nothing else is involved: no database, no accounts
 
 ## Status
 
-Honest picture of what exists today.
+Honest picture of what exists today. The step-by-step launch list is [docs/launch-checklist.md](docs/launch-checklist.md).
 
 | Part | State |
 | --- | --- |
@@ -44,7 +44,7 @@ Honest picture of what exists today.
 | Scripts: results snapshot, approval-gated ship, rehearsal simulator | Built. `ship` and the decision rule are tested; `results` needs a live experiment |
 | `winnow-kit` | Built, unit-tested |
 | Security headers, origin check, size and rate limits | Built, checked against a production build |
-| Flagsmith flag, metric and experiment | **Not created yet** (needs the Flagsmith account) |
+| Flagsmith flag, metrics and experiment | **Not created yet**: one command, `npm run setup:flagsmith` (needs the account) |
 | Run with real Flagsmith and LLM keys | **Not done yet** |
 | Deploy, real traffic, winner | **Not done yet** |
 | Demo film | **Not recorded yet** |
@@ -142,6 +142,8 @@ Statistical caveats (peeking, three arms, self-selected voters) are written down
 | `npm run simulate -- --users 300` | Rehearsal traffic with `sim_` identities (use a separate environment) |
 | `npm run results -- --environment <key> --experiment <id> [--simulated]` | Pull results with the Flagsmith CLI into `data/results.json` |
 | `npm run ship -- [--dry-run]` | Apply the decision rule; ship only after a human types the winner's name |
+| `npm run setup:flagsmith -- --environment <key> [--dry-run] [--start <id>]` | Create flags, metrics and the experiment in one go; `--start` starts it |
+| `npm run smoke -- <url>` | Check a running app: pages, headers, a roast, a vote, the share card |
 
 Environment variables are listed in [.env.example](.env.example). Flagsmith setup is in
 [docs/flagsmith-setup.md](docs/flagsmith-setup.md).
