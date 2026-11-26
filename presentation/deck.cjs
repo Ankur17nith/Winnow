@@ -10,6 +10,8 @@ const ROOT = path.join(__dirname, "..");
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const home = "data:image/png;base64," + fs.readFileSync(path.join(ROOT, "docs/assets/home.png")).toString("base64");
 const tests = fs.readFileSync(path.join(ROOT, "test/lib.test.ts"), "utf8").match(/^test\(/gm).length;
+const evidence = fs.existsSync(path.join(ROOT, "video/work/evidence.txt"))
+  ? fs.readFileSync(path.join(ROOT, "video/work/evidence.txt"), "utf8").trim().split("\n\n") : [];
 let standings = null;
 try { standings = JSON.parse(fs.readFileSync(path.join(ROOT, "data/results.json"), "utf8")); } catch { standings = null; }
 
@@ -33,14 +35,21 @@ const SLIDES = [
   slide(4, `<p class="eye">How one visit works</p><h2>Two requests, one identity.</h2>
     <div class="flow">${[["Visitor", "pastes a README or a GitHub link"], ["getExperimentFlag", "deals friendly, savage or actionable; exposure recorded"], ["Groq", "writes the roast; the README is untrusted data"], ["Vote", "thumbs_up / thumbs_down for the same anonymous id"], ["Reveal", "variant shown only after the vote"]].map(([a, b], i) => `<div class="dstep"><span>${i + 1}</span><b>${a}</b><p>${b}</p></div>`).join("")}</div>
     <p class="dfoot">Every Flagsmith call is server-side, so the prompts never reach the browser and exposure and conversion always share the cookie's identity.</p>`),
-  slide(5, `<p class="eye">The experiment</p><h2>Do developers want AI feedback<br><span class="acc">kind, brutal or actionable?</span></h2>
+  slide(5, `<p class="eye">Trust</p><h2>A vote can't be forged.<br><span class="acc">Real responses.</span></h2>
+    <div class="ev">${evidence.length ? evidence.map((b) => { const [c, ...r] = b.split("\n"); const body = r.join("\n").trim(); const k = /200\s*$/.test(body) ? "good" : /40\d\s*$/.test(body) ? "bad" : "";
+      return `<div class="blk"><div class="cm">${esc(c)}</div><div class="res ${k}">${esc(body)}</div></div>`; }).join("") : `<div class="blk"><div class="cm">Run video/evidence.sh against the app to fill this slide.</div></div>`}</div>
+    <p class="dfoot">Captured from the running app in preview mode. A vote needs a signed token for the visitor's own roast; requests from other sites are refused.</p>`),
+  slide(6, `<p class="eye">The experiment</p><h2>Do developers want AI feedback<br><span class="acc">kind, brutal or actionable?</span></h2>
     <table>${[["Flag", "roast_prompt · multivariate · control, savage, actionable"], ["Split", "34 / 33 / 33 · 100% of visitors"], ["Primary metric", "thumbs_up (Roast liked)"], ["Fires early", "roast_again: the visitor comes back for a second roast"], ["Sanity check", "roast_requested: near 100% in every arm by design"], ["Decision rule", "ship at ≥ 90% win probability with ≥ 30 visitors in every arm, fixed before any data"]].map(([a, b]) => `<tr><th>${a}</th><td>${b}</td></tr>`).join("")}</table>`),
-  slide(6, `<p class="eye">Why it needs Flagsmith</p><h2>The flag <span class="acc">is</span> the product.</h2>
+  slide(7, `<p class="eye">Why it needs Flagsmith</p><h2>The flag <span class="acc">is</span> the product.</h2>
     <div class="grid4">${[["Variants", "Prompts live in a multivariate flag, not a code branch."], ["Experimentation", "Exposures and votes go in through the Node SDK; the Bayesian engine gives win probability."], ["Kill switch", "roasts_enabled turns roasting off instantly to protect the free LLM quota."], ["Rollout", "Shipping the winner is flagsmith flag update --weight, not a deploy."]].map(([a, b]) => `<div class="card"><b>${a}</b><p>${b}</p></div>`).join("")}</div>`),
-  slide(7, `<p class="eye">Honest by construction</p><h2>A winner ships only on the rule,<br><span class="acc">and only with a person.</span></h2>
+  slide(8, `<p class="eye">Honest by construction</p><h2>A winner ships only on the rule,<br><span class="acc">and only with a person.</span></h2>
     <ul class="big-list two"><li>No admin key in the app; setup, results and rollout run through the CLI on a person's machine.</li><li>Simulated data can never ship a prompt (tested).</li><li>The vote can't be influenced: the variant is revealed after it.</li><li>A vote must carry a signed token for that visitor's own roast.</li><li>Same-origin check, size limits, per-visitor and per-IP caps, strict CSP.</li><li>16 controls, each with its proof: <code>docs/safety.md</code>. ${tests} automated tests.</li></ul>`),
-  slide(8, `<p class="eye">Results</p><h2>The race.</h2>${results}`),
-  slide(9, `<p class="eye">For anyone's prompts</p><h2>winnow-kit: <span class="acc">ten lines.</span></h2>
+  slide(9, `<p class="eye">Honest status</p><h2>Proven, <span class="acc">and not yet.</span></h2>
+    <div class="pv"><div class="col ok"><h3>Proven</h3><ul><li>${tests} unit tests pass</li><li>The whole flow ran in a real browser, on desktop and phone</li><li>Security headers, and refused cross-site and forged votes</li><li>npm run smoke: 9 of 9 against a production build</li></ul></div>
+      <div class="col no"><h3>Not yet</h3><ul><li>A warehouse connection</li><li>Events from a live deployment</li><li>A single real result</li></ul></div></div>`),
+  slide(10, `<p class="eye">Results</p><h2>The race.</h2>${results}`),
+  slide(11, `<p class="eye">For anyone's prompts</p><h2>winnow-kit: <span class="acc">ten lines.</span></h2>
     <pre class="code">const winnow = createWinnow({ flagsmith, flag: "support_prompt",
   prompts: { control: "You are a concise support agent.",
              friendly: "You are a warm, patient support agent." } });
@@ -49,11 +58,18 @@ const { variant, prompt } = await winnow.pick(userId); // exposure
 // ...call your LLM with prompt...
 winnow.track(userId, "thumbs_up");                      // conversion
 await winnow.flush();</pre>`),
-  slide(10, `<div class="title">${ring}<h1 class="word">WINN<b>O</b>W</h1><p class="tag">github.com/Ankur17nith/Winnow</p>
+  slide(12, `<div class="title">${ring}<h1 class="word">WINN<b>O</b>W</h1><p class="tag">github.com/Ankur17nith/Winnow</p>
     <p class="meta">Built with Next.js, Flagsmith Experimentation and Groq · Design language adapted from Lifeline (MIT)<br>Music in the demo: Sascha Ende, ende.app (CC BY 4.0) · Voices: ElevenLabs</p></div>`, "center"),
 ];
 
 const CSS = `
+.ev { background: var(--ink); border-radius: 16px; padding: 28px 38px; box-shadow: 9px 9px 0 var(--rescue); max-width: 1650px }
+.ev .blk { margin: 0 0 18px } .ev .cm { font: 500 25px/1.4 var(--font-plex), monospace; color: #c9d3f5 }
+.ev .res { font: 400 26px/1.4 var(--font-plex), monospace; padding-left: 26px; color: #c9d3f5 } .ev .bad { color: #ff8a66 } .ev .good { color: #7ff0cd }
+.pv { display: grid; grid-template-columns: 1fr 1fr; gap: 44px } .col { background: var(--card); border: 3px solid var(--ink); border-radius: 16px; padding: 30px 38px; box-shadow: 7px 7px 0 var(--ink) }
+.col h3 { margin: 0 0 20px; font: 800 52px/1 var(--font-archivo); font-stretch: 70%; text-transform: uppercase } .col.ok h3 { color: var(--mint-ink) } .col.no h3 { color: var(--rescue-ink) }
+.col ul { margin: 0; padding: 0 } .col li { list-style: none; position: relative; padding-left: 46px; margin-bottom: 16px; font: 400 31px/1.35 var(--font-archivo); color: var(--ink-2) }
+.col li::before { content: ""; position: absolute; left: 0; top: 6px; width: 22px; height: 30px; border-radius: 50%; border: 3px solid var(--ink) } .col.ok li::before { background: var(--mint) } .col.no li::before { background: var(--rescue) }
 @page { size: 1920px 1080px; margin: 0 }
 body > *:not(.deck) { display: none !important }
 html, body { background: var(--paper) }
