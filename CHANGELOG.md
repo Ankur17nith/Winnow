@@ -2,6 +2,20 @@
 
 Dates are UTC. Versions are this repository's own; they are not published anywhere.
 
+## v0.6.0 — 26 Nov 2026 (demo video and deck)
+
+Added
+- **A demo video pipeline** (`video/`): a script, an ElevenLabs voiceover builder with clips cached by content, a frame
+  renderer that films the real app in preview mode, and an assembly step that mixes low music under the voice and
+  normalises loudness. Two voices alternate, an American English one and an Indian English one.
+- **Scenes built from real evidence**: a diagram of where the vote goes, lit node by node as it is spoken; the app's
+  actual responses to a forged vote, a vote with no cookie and a cross-site request (`video/evidence.sh`); a "proven, and
+  not yet" slide; repository counts read from git when the video is rendered.
+- **A pitch deck** (`presentation/deck.cjs`), built from the app's own stylesheet and printed to a 16:9 PDF.
+
+Changed
+- `docs/demo-script.md` now points at `video/script.md`, the only copy of the words.
+
 ## v0.5.0 — 26 Nov 2026 (ready to launch)
 
 Added
