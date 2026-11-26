@@ -1,85 +1,82 @@
 # Architecture
 
-## Overview
+One Next.js service, no database. Flagsmith holds the flags, the events and the experiment; Groq writes the roasts. All
+Flagsmith calls are server-side through one SDK (`@flagsmith/nodejs`), so the prompts never reach the browser and the
+exposure and the conversion always carry the same identity.
 
-A single Next.js app. All Flagsmith interaction happens **server-side** through one SDK (`@flagsmith/nodejs` 9.1.0+), so
-system prompts never reach the browser and exposure/conversion use one consistent identity.
+## The system
 
 ```
-Browser ──POST /api/roast──▶ Next.js route handler
-   ▲                          │ 1. read/create signed identity cookie
-   │                          │ 2. roasts_enabled? (kill switch) + rate limit
-   │                          │ 3. getExperimentFlag("roast_prompt", identity)  ← exposure recorded
-   │                          │ 4. variant key → system prompt
-   │                          │ 5. call LLM with prompt + untrusted README text
-   │  { roastId, text }       │ 6. flush events, return roast
-   └──────────────────────────┘
-Browser ──POST /api/feedback { roastId, vote }──▶ route handler
-                              │ verify identity owns roastId
-                              │ track("thumbs_up" | "thumbs_down", identity)  ← conversion
-                              │ flush events
+                      ┌──────────────────────── Vercel: one Next.js project ────────────────────────┐
+Visitor's browser ──▶ │ /            landing + roaster        /race      standings from snapshot    │
+                      │ /api/roast   guard → identity → kill switch → limits → variant → LLM        │──▶ Groq
+                      │ /api/feedback  guard → token check → trackEvent → reveal                    │
+                      │ /api/card    share image (text only, 280 chars)                             │
+                      └───────────────┬─────────────────────────────────────────────┬───────────────┘
+                                      │ getExperimentFlag, trackEvent, flushEvents  │ reads data/results.json
+                                      ▼                                             │
+                               Flagsmith Cloud  ◀── flagsmith CLI on a person's machine ──┘
+                               flags, events,        setup:flagsmith · results · ship
+                               experiment            (signed in with flagsmith login)
 ```
 
-## Components
+## One visit
 
-| Component | Responsibility |
-|---|---|
-| `app/page.tsx` | Input form (paste README or repo URL), roast display, 👍/👎 buttons |
-| `app/api/roast/route.ts` | Enforce limits, pick prompt via flag, call LLM, return roast |
-| `app/api/feedback/route.ts` | Record the conversion event for the same identity |
-| `lib/flagsmith.ts` | Singleton Node SDK client, with events enabled |
-| `lib/identity.ts` | Create and verify the signed anonymous ID cookie |
-| `lib/prompts.ts` | Map variant keys to system prompts, with a safe fallback to `control` |
-| `lib/llm.ts` | Provider abstraction (Groq or Gemini) behind one `complete()` function |
-| `lib/limits.ts` | Input length cap, per-identity and global daily caps |
-| `scripts/simulate-traffic.ts` | Simulated users for rehearsal (never counted as real results) |
-| `scripts/fetch-results.sh` | Refresh and save results via the Flagsmith CLI (stretch) |
+```
+POST /api/roast {text | repoUrl}
+  1. guardRequest      Origin must match the host; body ≤ 40 KB            lib/guard.ts
+  2. identity          signed cookie winnow_id, created on first visit     lib/identity.ts
+  3. roasts_enabled?   kill switch; 503 if off; fails open                 lib/flagsmith.ts
+  4. input             paste, or README fetched from api.github.com         lib/limits.ts
+  5. caps              30 per IP, 5 per visitor, per day                    lib/limits.ts
+  6. pickVariant       getExperimentFlag → exposure recorded HERE           lib/flagsmith.ts
+  7. promptFor         variant key → system prompt (unknown → control)      lib/prompts.ts
+  8. complete          Groq, README inside <readme> tags, 20 s timeout      lib/llm.ts
+  9. events            roast_requested; roast_again if winnow_n ≥ 1         lib/engagement.ts
+ 10. flushEvents       before returning, because a serverless function can freeze
+ ← {roast, roastId}    roastId = signed {identity, variant, issuedAt}; the variant is not sent in the clear
 
-## Identity
+POST /api/feedback {roastId, vote: up | down | copy}
+  1. guardRequest
+  2. verify            token signature, age < 1 h, token identity = cookie identity
+  3. trackEvent        thumbs_up | thumbs_down | copy, same identity as the exposure
+  4. flushEvents
+ ← {variant, standings}   the reveal; standings are null until data/results.json exists
+```
 
-- First visit: generate a random UUID and set it in an HTTP-only cookie signed with `COOKIE_SECRET` (HMAC).
-- The **same identifier** is passed to `getExperimentFlag` (exposure) and `track` (conversion). Flagsmith joins events
-  per identity, so a mismatch silently breaks results.
-- The identity is also stored with each `roastId` in a signed token, so `/api/feedback` can verify the vote belongs to
-  that visitor and that roast. No database is needed.
+Steps 2–5 can refuse a request. Nothing is recorded in Flagsmith until step 6, so a refused request is never an
+exposure.
 
-## Roast ID token
+## Trust boundaries
 
-`roastId` is a signed, short-lived token containing `{identity, variant, issuedAt}`. The feedback route verifies the
-signature and the identity match. Each roast accepts one vote; repeat votes are ignored (enforced best-effort with a
-per-token `thumbs` cookie).
-
-## Flags
-
-| Flag | Type | Purpose |
+| Boundary | What crosses it | What protects it |
 |---|---|---|
-| `roast_prompt` | multivariate | The experiment. Variants: `control`, `savage`, `actionable` |
-| `roasts_enabled` | boolean | Kill switch to protect the free LLM quota |
+| Browser → app | README text, a repo URL, a vote, two cookies | Same-origin check, size limit, caps, signed cookie and token ([safety.md](safety.md)) |
+| App → GitHub | One GET for a README | Only `api.github.com/repos/<owner>/<repo>/readme`, names checked against `[A-Za-z0-9._-]` |
+| App → Groq | The system prompt and the README | The README is labelled untrusted; the model has no tools and no secrets in its context |
+| App → Flagsmith | Exposures and events, by anonymous UUID | Server-side environment key only; no admin key in the app |
+| Person → Flagsmith | Creating the experiment, results, rollout | The CLI on their own machine, signed in as them; `ship` needs the winner typed by hand |
 
-## Untrusted input
+## Why it is shaped like this
 
-The README text is **data**, not instructions:
-- Capped at 12,000 characters.
-- Wrapped in delimiters, and the system prompt tells the model to ignore instructions inside the delimiters.
-- Output is rendered as plain text (no HTML injection).
-- GitHub URL input only fetches public README content from `raw.githubusercontent.com` or the GitHub API. Other hosts
-  are rejected (prevents SSRF).
+- **No database.** Identity is a signed cookie, a vote is proven by a signed token, and the experiment's data lives in
+  Flagsmith. There is nothing to back up and nothing to leak.
+- **Server-side flags only.** The browser SDK would expose the prompts and make it easy to send a conversion under a
+  different identity from the exposure.
+- **A snapshot, not a live query, for standings.** Reading results needs an admin credential. Keeping that on a person's
+  machine is worth the cost of standings that update on redeploy.
+- **Preview mode.** `WINNOW_PREVIEW=1` swaps the flag and the LLM for deterministic stand-ins (`lib/preview.ts`), so the
+  whole flow runs with no keys and nothing leaves the machine. It is how every screen in this repo was checked.
 
-## Serverless and event flushing
+## Files
 
-SDK events are batched. On Vercel the function can freeze right after the response, so each route flushes events before
-returning (`close()` or equivalent flush from the SDK docs). The smoke test must confirm events arrive.
-
-## Secrets
-
-- Only the **server-side environment key** and the LLM key are in env vars (Vercel project settings locally in
-  `.env.local`).
-- No admin API key is ever used by the app. The Flagsmith CLI runs on the developer's machine with `flagsmith login`.
-- `flagsmith.env` and `.env*` are git-ignored.
-
-## Why this stack
-
-- Next.js on Vercel: free, scales to zero, one deploy for UI and API.
-- One SDK, server-side: simplest correct identity handling, hides prompts.
-- Provider abstraction for the LLM: the free-tier provider can change without touching the app.
-- No database: the app is stateless, and Flagsmith holds all experiment data.
+| Path | What it holds |
+|---|---|
+| `app/page.tsx`, `components/Roaster.tsx` | The landing page and the tool: input, roast ticket, stamps, reveal, copy, share |
+| `components/Art.tsx` | The SVG basket, kernels, chaff, stamps and sieve ring |
+| `app/race/page.tsx` | Grain piles per variant, the decision rule and its current verdict |
+| `app/api/*/route.ts` | `roast`, `feedback`, `card` |
+| `lib/` | `flagsmith`, `identity`, `prompts`, `limits`, `guard`, `llm`, `engagement`, `decision`, `results`, `standings`, `preview` |
+| `scripts/` | `setup-flagsmith`, `smoke`, `simulate-traffic`, `fetch-results`, `ship-winner`, and `cli.ts`, the CLI wrapper they share |
+| `kit/winnow-kit.ts` | The same pattern as a ten-line library for anyone's prompts |
+| `next.config.mjs` | Security headers and the content-security-policy |
