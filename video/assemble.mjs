@@ -15,8 +15,8 @@ const MUSIC = process.env.MUSIC ?? "/home/user/latent-spaces/brag/skills/brag/as
 const FIRST_BEAT = 3.0186; // from brag's cue file: the music starts on a beat at frame 0
 const ff = (args) => execFileSync("ffmpeg", ["-v", "error", "-y", ...args], { stdio: "inherit" });
 
-// Poster: the hook, fully settled (4 s in), also baked in as frame 0 so every platform's thumbnail shows it.
-const posterIdx = String(Math.round(4.0 * tl.fps)).padStart(6, "0");
+// Poster: the hook, fully settled (6.6 s in), also baked in as frame 0 so every platform's thumbnail shows it.
+const posterIdx = String(Math.round(6.6 * tl.fps)).padStart(6, "0");
 copyFileSync(join(work, "frames", `${posterIdx}.jpg`), join(out, "brag.jpg"));
 copyFileSync(join(work, "frames", `${posterIdx}.jpg`), join(work, "frames", "000000.jpg"));
 
