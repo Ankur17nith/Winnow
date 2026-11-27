@@ -43,28 +43,70 @@ test("length cap", () => {
 
 const { decide } = await import("../lib/decision.ts");
 const { normalizeResults } = await import("../lib/results.ts");
-const mk = (simulated: boolean, rows: [string, number, number, number][]) => ({
+// rows are [key, exposures, conversions, chance to beat control]; control is the baseline and has no chance (null)
+const mk = (simulated: boolean, rows: [string, number, number, number | null][]) => ({
   updatedAt: "2026-11-19T00:00:00Z",
   simulated,
   variants: rows.map(([key, exposures, conversions, winProbability]) => ({ key, exposures, conversions, winProbability })),
 });
 
-test("decision: ships only with enough exposures and a clear winner", () => {
+test("decision: ships only a treatment, with enough exposures and a clear chance of beating control", () => {
   assert.equal(decide(null).action, "wait");
-  assert.equal(decide(mk(false, [["control", 40, 10, 0.1], ["savage", 40, 12, 0.2], ["actionable", 40, 20, 0.95]])).action, "ship");
-  assert.equal(decide(mk(false, [["control", 10, 2, 0.1], ["actionable", 10, 8, 0.95]])).action, "wait");
-  assert.equal(decide(mk(false, [["control", 40, 10, 0.4], ["actionable", 40, 14, 0.6]])).action, "wait");
+  const ship = decide(mk(false, [["control", 40, 10, null], ["savage", 40, 12, 0.2], ["actionable", 40, 20, 0.95]]));
+  assert.ok(ship.action === "ship" && ship.winner === "actionable");
+  assert.equal(decide(mk(false, [["control", 10, 2, null], ["actionable", 10, 8, 0.95]])).action, "wait");
+  assert.equal(decide(mk(false, [["control", 40, 10, null], ["actionable", 40, 14, 0.6]])).action, "wait");
+  // control is never a winner, and no estimate yet means wait
+  assert.equal(decide(mk(false, [["control", 40, 10, null], ["actionable", 40, 14, null]])).action, "wait");
 });
 
 test("decision: simulated data never ships", () => {
-  const d = decide(mk(true, [["control", 400, 10, 0.01], ["actionable", 400, 200, 0.99]]));
-  assert.equal(d.action, "wait");
+  assert.equal(decide(mk(true, [["control", 400, 10, null], ["actionable", 400, 200, 0.99]])).action, "wait");
 });
 
-test("results adapter normalises percentages and fails loudly on unknown shapes", () => {
-  const s = normalizeResults({ variations: [{ key: "a", exposures: 5, conversions: 2, win_probability: 80 }] }, { simulated: false });
-  assert.equal(s.variants[0].winProbability, 0.8);
-  assert.throws(() => normalizeResults({ nope: 1 }, { simulated: false }), /Unrecognised results shape/);
+// The shape of a live Flagsmith results response, as documented in a teammate's repository (selfhost/README.md):
+// results.payload.metrics[].{metric_id, variants{key:{n,sum,sum_squares}}, inference{treatment key:{lift,ci_low,ci_high,chance_to_win}|null}}
+const live = (over: Record<string, unknown> = {}) => ({
+  results: {
+    as_of: "2026-11-28T09:00:00Z",
+    is_final: false,
+    payload: {
+      srm_p_value: 0.42,
+      metrics: [
+        {
+          metric_id: 7,
+          variants: { actionable: { n: 40, sum: 22, sum_squares: 22 }, control: { n: 41, sum: 10, sum_squares: 10 }, savage: { n: 39, sum: 12, sum_squares: 12 } },
+          inference: { savage: { lift: 0.26, ci_low: -0.4, ci_high: 0.9, chance_to_win: 0.71 }, actionable: { lift: 1.25, ci_low: 0.2, ci_high: 2.3, chance_to_win: 0.97 } },
+        },
+        { metric_id: 8, variants: { control: { n: 41, sum: 99 }, savage: { n: 39, sum: 99 }, actionable: { n: 40, sum: 99 } }, inference: {} },
+      ],
+      ...over,
+    },
+  },
+});
+
+test("results adapter reads the live shape: control first with no chance, treatments with theirs", () => {
+  const s = normalizeResults(live(), { simulated: false, metricId: 7 });
+  assert.deepEqual(s.variants.map((v) => v.key), ["control", "actionable", "savage"]);
+  const [control, actionable] = s.variants;
+  assert.equal(control.winProbability, null);
+  assert.equal(control.conversions, 10);
+  assert.equal(actionable.exposures, 40);
+  assert.equal(actionable.conversions, 22);
+  assert.equal(actionable.winProbability, 0.97);
+  assert.equal(actionable.ciLow, 0.2);
+  assert.equal(s.srmPValue, 0.42);
+  assert.equal(s.updatedAt, "2026-11-28T09:00:00Z");
+  assert.equal(normalizeResults(live({ srm_p_value: null }), { simulated: false, metricId: 7 }).srmPValue, null);
+});
+
+test("results adapter fails loudly, naming what it saw", () => {
+  assert.throws(() => normalizeResults({ results: null }, { simulated: false, metricId: 7 }), /no results payload yet/);
+  assert.throws(() => normalizeResults({ nope: 1 }, { simulated: false, metricId: 7 }), /Top-level keys: nope/);
+  assert.throws(() => normalizeResults(live(), { simulated: false, metricId: 99 }), /Metric ids present: 7, 8/);
+  const bad = live();
+  (bad.results.payload.metrics[0].variants as Record<string, unknown>).savage = { sum: 1 };
+  assert.throws(() => normalizeResults(bad, { simulated: false, metricId: 7 }), /savage is missing n or sum/);
 });
 
 const { createWinnow } = await import("../kit/winnow-kit.ts");
@@ -164,18 +206,38 @@ test("split check: balanced, skewed, thin and unsupported", () => {
 });
 
 const { explain } = await import("../lib/explain.ts");
-const row = (key: string, exposures: number, conversions: number, winProbability: number) => ({ key, exposures, conversions, winProbability });
-test("explain: states the leader, the gap, the limits and the rule, from the numbers only", () => {
-  const s = { updatedAt: "2026-11-28T00:00:00Z", simulated: false, variants: [row("control", 40, 10, 0.1), row("savage", 40, 12, 0.2), row("actionable", 40, 22, 0.7)] };
+const row = (key: string, exposures: number, conversions: number, winProbability: number | null, ci?: [number, number, number]) => ({
+  key, exposures, conversions, winProbability, ...(ci ? { lift: ci[0], ciLow: ci[1], ciHigh: ci[2] } : {}),
+});
+test("explain: states the leader against control, the interval, the limits and the rule, from the numbers only", () => {
+  const s = {
+    updatedAt: "2026-11-28T00:00:00Z",
+    simulated: false,
+    variants: [row("control", 40, 10, null), row("savage", 40, 12, 0.2), row("actionable", 40, 22, 0.7, [0.3, -0.1, 0.7])],
+  };
   const text = explain(s).join(" ");
-  assert.match(text, /Actionable leads with a 70% chance/);
-  assert.match(text, /savage is next at 20%/);
+  assert.match(text, /Actionable has a 70% chance of beating control/);
+  assert.match(text, /Savage has a 20% chance of beating control/);
   assert.match(text, /30 percentage points more often than control/);
-  assert.match(text, /rule is not met yet/);
+  assert.match(text, /interval from −10% to \+70%/);
+  assert.match(text, /interval includes zero/);
+  assert.match(text, /rule is not met yet, so control stays/);
   assert.match(text, /chose to vote/);
   assert.doesNotMatch(text, /simulated rehearsal/);
   assert.match(explain({ ...s, simulated: true }).join(" "), /simulated rehearsal/);
   assert.match(explain(null).join(" "), /no results yet/);
-  const thin = explain({ ...s, variants: [row("control", 5, 1, 0.3), row("savage", 5, 2, 0.7)] }).join(" ");
+  const thin = explain({ ...s, variants: [row("control", 5, 1, null), row("savage", 5, 2, 0.7)] }).join(" ");
   assert.match(thin, /smallest arm has 5 visitors/);
+  assert.match(explain({ ...s, variants: [row("control", 40, 10, null), row("savage", 40, 12, null)] }).join(" "), /no estimate against control yet/);
+});
+
+const { extractHypothesis, parseHashes, sha256 } = await import("../lib/prereg.ts");
+test("pre-registration: the hypothesis is the marked block, and hashes parse back", () => {
+  const md = "# x\n<!-- hypothesis:start -->\n  The actionable prompt is liked more often than control.\n<!-- hypothesis:end -->\nrest";
+  assert.equal(extractHypothesis(md), "The actionable prompt is liked more often than control.");
+  assert.throws(() => extractHypothesis("no markers here"), /hypothesis between/);
+  assert.throws(() => extractHypothesis("<!-- hypothesis:start -->\nshort\n<!-- hypothesis:end -->"), /too short/);
+  const h = sha256("hello");
+  assert.equal(h.length, 64);
+  assert.deepEqual(parseHashes(`${h}  prereg/experiment-1.md\nnot a hash line\n`), { "prereg/experiment-1.md": h });
 });
