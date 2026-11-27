@@ -40,6 +40,13 @@ spoken. Clips are stored by the hash of their text, voice and model, so changing
 
 Re-record scene 3 against the deployed app too, so the roast is a real one instead of a `[preview]` one.
 
+## What the current cut is out of date on
+
+The video was rendered on 26 Nov, before several later changes. It still says "ninety percent win probability" where the rule is now
+a 90% chance of beating control, it says thirteen tests where there are now 22, it shows the old home page, and it doesn't mention
+the AI judge. `video/script.md` records the words as recorded. Re-voice scenes 8 and 10, re-film the app scenes against the deployed
+app, and render again once there are real results.
+
 ## Credits
 
 Music: "Happy Beats / Business Moves Vol. 1" by Sascha Ende, ende.app, CC BY 4.0. Voices: ElevenLabs.
