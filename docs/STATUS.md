@@ -1,7 +1,7 @@
-# Status: Thu 26 Nov 2026
+# Status: Fri 27 Nov 2026
 
-The application is finished and tested without keys. Nothing has run against a real Flagsmith experiment or a real LLM
-yet, so no result exists. The steps that need accounts are in [human-runbook.md](human-runbook.md).
+The code is written and tested without keys. Nothing has run against a real Flagsmith experiment or a real LLM yet, so no
+result exists. The steps that need accounts are in [human-runbook.md](human-runbook.md).
 
 ## What works (verified in the build sandbox)
 
@@ -13,7 +13,7 @@ yet, so no result exists. The steps that need accounts are in [human-runbook.md]
 | Security headers and the content-security-policy | `curl -I` on a production build shows CSP, `X-Frame-Options: DENY`, `nosniff`, referrer policy; the page renders under them with no CSP violations |
 | Cross-site POSTs are refused | `curl` with `Origin: https://evil.com` gets 403 from `/api/roast` |
 | `npm run smoke` | 9 of 9 checks pass against a local production build (preview mode) |
-| `npm run ship` | `--dry-run` prints the right `flagsmith flag update --weight` command; typing anything but the winner's name cancels; simulated data never ships (unit test) |
+| `npm run ship` | `--dry-run` prints the `complete` call with the winner's key as `rollout_decision`; typing anything but the winner's name cancels; simulated data never ships (unit test) |
 | `npm run setup:flagsmith` | `--dry-run` prints every CLI call and JSON body; the bodies match the format in Flagsmith's own coding-agent setup prompt |
 | Home page: live floor in the hero, wave strip, roast wipe, vote landing | Rendered in headless Chromium at 1440 and 390 px with a simulated snapshot and with none; no console errors, no horizontal overflow on mobile; the kernel flight was observed in flight in screenshots taken during the animation |
 | Remote prompts, split check, plain-English explanation | Unit-tested (`resolvePrompt`, `splitCheck`, `explain`); the race page rendered in Chromium with a simulated snapshot showing the explanation and a passing split check |
@@ -44,7 +44,7 @@ These are not known to be broken. They are unproven. In order of risk:
 4. **The results response, on this account.** `lib/results.ts` reads the shape documented from a live response in a teammate's
    repository (`results.payload.metrics[]` with `variants{n,sum}` and `inference{chance_to_win,lift,ci_low,ci_high}`,
    `chance_to_win` being each treatment's chance of beating control). It is tested against a fixture of that shape, not yet
-   against this project's own experiment. It fails loudly, naming the keys it saw, if they differ.
+   against this project's own experiment. If they differ it stops with an error that names the keys it saw.
 5. **Ending the experiment with a winner.** `npm run ship` calls `.../complete/` with `rollout_decision=<winner key>`.
    Only `rollout_decision=control` has been seen to work (a teammate's smoke test). If a treatment's key is rejected the
    script stops with Flagsmith's error; the fallback is `flag update --weight` after ending the experiment in the dashboard.
