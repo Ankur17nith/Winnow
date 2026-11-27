@@ -156,3 +156,12 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 .split.ok { border-left: 8px solid var(--mint) } .split.mismatch { border-left: 8px solid #e5243b; background: #fff0f1 } .split.insufficient, .split.unsupported { border-left: 8px solid var(--chaff) }
 
 .reveal li em { grid-column: 2 / 4; font: 400 12px var(--font-plex), monospace; color: var(--muted); font-style: normal; margin-top: -2px }
+
+.judge { padding: 22px 26px; margin: 0 0 20px }
+.judge .note { margin: 12px 0 0; max-width: 78ch }
+.judge-bars { list-style: none; margin: 16px 0; padding: 0; display: grid; gap: 10px }
+.judge-bars li { display: grid; grid-template-columns: 110px 1fr 44px; gap: 4px 12px; align-items: center; font: 500 14px var(--font-plex), monospace; color: var(--ink) }
+.judge-bars .bar { height: 14px; border: 2px solid var(--ink); border-radius: 7px; background: var(--card); overflow: hidden }
+.judge-bars .bar i { display: block; height: 100%; background: var(--sea) }
+.judge-bars em { grid-column: 2 / 4; font: 400 12px var(--font-plex), monospace; color: var(--muted); font-style: normal; margin-top: -4px }
+.judge .split { margin: 6px 0 0 }

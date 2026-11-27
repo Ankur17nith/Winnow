@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { SieveRing } from "@/components/Art";
 import { DEFAULT_RULE, decide } from "@/lib/decision";
 import { explain } from "@/lib/explain";
+import { agreement } from "@/lib/judge";
+import { readJudge } from "@/lib/judgeData";
 import { splitCheck } from "@/lib/srm";
 import { readStandings } from "@/lib/standings";
 
@@ -15,6 +17,8 @@ const SHARE: Record<string, number> = { control: 34, savage: 33, actionable: 33 
 
 export default async function Race() {
   const standings = await readStandings();
+  const judge = await readJudge();
+  const verdict = agreement(judge, standings);
   const decision = decide(standings);
   const split = standings ? splitCheck(standings.variants, standings.variants.map((v) => SHARE[v.key] ?? 100 / standings.variants.length)) : null;
   const leader = standings
@@ -80,6 +84,33 @@ export default async function Race() {
         </>
       ) : (
         <p className="card empty">No results yet. The race starts once the experiment is running and the first votes are in.</p>
+      )}
+
+      {judge && (
+        <section className="card judge" aria-label="The AI judge's read">
+          <h2 className="eyebrow">
+            Before any visitor: an AI judge&apos;s read {judge.preview && <mark className="sim-tag">PREVIEW: STAND-IN NUMBERS</mark>}
+          </h2>
+          <p className="note">
+            {judge.preview ? "A stand-in judge" : judge.judgeModel} scored each prompt&apos;s roast of {judge.readmes} sample READMEs from 1 to 5 on being specific, useful and
+            civil. This is not Flagsmith data and does not affect the decision rule. It is a cheap pre-flight, and a check of whether
+            an AI judge can predict what people like. LLM judges are known to favour longer, more confident text, which is why
+            people still vote.
+          </p>
+          <ul className="judge-bars">
+            {judge.variants.map((v) => (
+              <li key={v.variant}>
+                <span>{v.variant}</span>
+                <span className="bar"><i style={{ width: `${v.overall === null ? 0 : (v.overall / 5) * 100}%` }} /></span>
+                <b>{v.overall === null ? "n/a" : v.overall.toFixed(1)}</b>
+                <em>{v.n} scored{v.failed > 0 ? `, ${v.failed} the judge could not score` : ""}</em>
+              </li>
+            ))}
+          </ul>
+          <p className={`split ${verdict.status === "match" ? "ok" : verdict.status === "differ" ? "mismatch" : "insufficient"}`}>
+            <b>Judge vs visitors</b> {verdict.text}
+          </p>
+        </section>
       )}
 
       <section className="band" aria-label="Decision rule">
