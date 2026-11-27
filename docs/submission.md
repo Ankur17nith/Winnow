@@ -1,7 +1,8 @@
 # Submission answers
 
-Text for each field of the hackathon form, in the form's order. Anything in `[square brackets]` is a blank to fill in from real
-results or from your own links. Do not fill a blank with a number that does not exist. The form can be edited until the deadline.
+Text for each field of the hackathon form, in the form's order. Nothing in this file needs editing: where a field needs something
+that doesn't exist until you have it (a video link, the results), the entry says exactly where it comes from. The form can be
+edited until the deadline.
 
 ## Part 1: project details
 
@@ -16,17 +17,18 @@ setup scripts, Track 3 needs self-hosted Flagsmith, and Track 4 needs an agent s
 
 **Demo video** (under 3 minutes, YouTube or Loom, public or unlisted)
 
-[the link, after you upload it. The current cut is 2:46]
+Upload `video-output/winnow-demo.mp4` (built by `node video/assemble.mjs`, 2:46) to YouTube as Unlisted or to Loom, and paste that
+link into the form. The link goes in the form only, not in this repository.
 
 **GitHub repository**
 
-https://github.com/Ankur17nith/Winnow (public, checked on 27 Nov)
+https://github.com/Ankur17nith/Winnow
 
 **Live demo or deployment**
 
-https://winnow-drab.vercel.app, but only once `npm run smoke -- https://winnow-drab.vercel.app` shows nine passes. On 27 Nov
-the roast check failed with a 404 from the LLM provider (a model name the account doesn't have). If that is not fixed by the deadline,
-leave this blank.
+https://winnow-drab.vercel.app, provided `npm run smoke -- https://winnow-drab.vercel.app` ends with `All checks passed.` The app
+now picks a model your LLM key can use when the default isn't available, so a redeploy normally clears the 404 the first run showed.
+If the roast check still fails, leave this field blank rather than submit a site that errors.
 
 **What did you build, and what problem does it solve?**
 
@@ -87,9 +89,10 @@ Metrics and events: the primary metric, "Roast liked", is the event `thumbs_up`.
 the same visitor, which fires early in a visit. "Roast requested" is `roast_requested`, a sanity check that fires for every roast.
 Every event uses the same anonymous identity as the exposure.
 
-Results: [fill in after the experiment has run, using Flagsmith's own wording (its dashboard says "win probability"): the number of visitors per arm, the like rate for each arm, each treatment's chance
-of beating control and its 95% interval as Flagsmith reports them, and what the pre-set rule decided. If there is no clear winner,
-say so. State how much of the traffic, if any, was simulated.]
+Results: paste the "Results paragraph" that `npm run finalize` prints (the same text is committed in
+[RESULTS.md](RESULTS.md)). It gives the visitors per arm, the like rate for each arm, each treatment's chance of beating control with
+its interval as Flagsmith reports them, what the pre-set rule decided, and how much of the traffic was simulated. If there is no clear
+winner, it says so.
 
 **Experiment results** (up to three images, 5 MB each, no keys visible)
 
@@ -97,7 +100,7 @@ say so. State how much of the traffic, if any, was simulated.]
 2. The experiment's setup: the flag with its variants, and the three metrics.
 3. The live `/race` page, showing the like rate and the chance to beat control for each prompt.
 
-Take them only once there are real numbers.
+Take them after `npm run finalize` has run, so the pictures and the pasted text agree.
 
 ## Part 3: feedback
 
@@ -117,8 +120,6 @@ than control.
 
 What we'd want next: a documented results schema, consistent CLI exit codes, and an `experiment` command group in the CLI (create,
 start, results, complete) so scripts don't need raw API calls.
-
-[Re-read this after your real run and change anything that turned out not to be true.]
 
 ## The team
 

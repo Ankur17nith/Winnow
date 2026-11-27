@@ -98,3 +98,7 @@ broke, surprised you, or changed a decision, and say what the code does about it
 - **A secret in a screenshot is a secret shared.** The terminal showed a freshly generated cookie secret. It protects signed
   cookies and vote tokens, so it was replaced before use. Generate secrets after you have closed the screen share.
 
+- **Leave nothing for a person to type into a file.** The first docs had blanks ("fill in the results") that a person had to edit and
+  commit under deadline pressure. The results step is now one command that writes the file, commits it and prints the text to paste.
+- **A model name is configuration that expires.** The default LLM model returned 404 on a real account, and the fix on paper was "set
+  `LLM_MODEL`". The code now asks the provider which models the key can use, retries once, and logs the provider's own reason.

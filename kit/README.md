@@ -23,7 +23,7 @@ await winnow.flush();                                   // before a serverless f
 
 1. Create a multivariate flag. Give **every** variation a key (without a key no exposures are recorded).
 2. Create a metric whose event name matches what you track (case-sensitive).
-3. Create and start an experiment on the flag. See `docs/flagsmith-setup.md` for the CLI commands.
+3. Create and start an experiment on the flag. `scripts/setup-flagsmith.ts` in this repo does it with the Flagsmith CLI, and is a working example.
 
 ## Rules for a valid test
 

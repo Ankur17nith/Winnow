@@ -12,7 +12,7 @@ export function getFlagsmith(): Flagsmith {
   if (client) return client;
   const environmentKey = process.env.FLAGSMITH_ENVIRONMENT_KEY;
   if (!environmentKey) {
-    throw new Error("FLAGSMITH_ENVIRONMENT_KEY is not set. See .env.example and docs/flagsmith-setup.md.");
+    throw new Error("FLAGSMITH_ENVIRONMENT_KEY is not set. See .env.example and docs/human-runbook.md.");
   }
   const apiUrl = process.env.FLAGSMITH_API_URL;
   const eventsApiUrl = process.env.FLAGSMITH_EVENTS_URL;

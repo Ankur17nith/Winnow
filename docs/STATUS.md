@@ -1,13 +1,14 @@
 # Status: Fri 27 Nov 2026
 
-The code is written and tested without keys. Nothing has run against a real Flagsmith experiment or a real LLM yet, so no
-result exists. The steps that need accounts are in [human-runbook.md](human-runbook.md).
+The code is written and tested without keys. The Flagsmith experiment (id 1048) exists and is pre-registered. What a run produced is
+in [RESULTS.md](RESULTS.md), which `npm run finalize` overwrites with the latest snapshot and says whether it is simulated. The steps
+that need accounts are in [human-runbook.md](human-runbook.md).
 
 ## What works (verified in the build sandbox)
 
 | Area | Evidence |
 |---|---|
-| Identity, roast tokens, limits, request guards, decision rule, results adapter, `winnow-kit` | 22 unit tests, `npm test`, all passing on 27 Nov |
+| Identity, roast tokens, limits, request guards, decision rule, results adapter, `winnow-kit` | 25 unit tests, `npm test`, all passing on 27 Nov |
 | Types and production build | `npm run lint` (tsc) and `npm run build` clean; the same steps run in [CI](../.github/workflows/ci.yml) |
 | The whole visitor flow: paste, roast, vote, reveal, copy, share card | Driven in headless Chromium against a production build in preview mode, at 1280 and 390 px wide; no console errors |
 | Security headers and the content-security-policy | `curl -I` on a production build shows CSP, `X-Frame-Options: DENY`, `nosniff`, referrer policy; the page renders under them with no CSP violations |
@@ -73,9 +74,9 @@ These are not known to be broken. They are unproven. In order of risk:
    whether that attributes the arm correctly is unverified.
 8. **The AI judge against a real model.** `npm run judge` has run only in preview mode. Whether a real judge's replies parse as
    a JSON object with three whole numbers, and how many come back unscorable, is unproven until a run with an `LLM_API_KEY`.
-9. **The default Groq model** (`llama-3.3-70b-versatile`). If roasts fail, set `LLM_MODEL` to one listed in the Groq
-   console.
-10. **Traffic.** The track allows simulated traffic. Real visitors make a better story and are not guaranteed.
+9. **Model discovery against Groq.** The default model returned 404 on this account. `lib/llm.ts` now asks Groq which models the key can
+   use and retries (unit-tested for the choice, not yet seen live). If it fails, `npm run models` lists the choices and `LLM_MODEL` sets one.
+10. **Traffic.** The track allows simulated traffic, which is labelled everywhere. Real visitors make a better story and are not guaranteed.
 
 ## Known limitations (by design, documented)
 

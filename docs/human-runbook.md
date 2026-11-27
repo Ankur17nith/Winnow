@@ -101,8 +101,8 @@ not be tested before deploy.
 
 | If you see | Do |
 |---|---|
-| `FAIL roast served (The roaster failed (4xx))` | The Groq key or model is wrong. Set `LLM_MODEL` in Vercel to a model your Groq console lists, redeploy |
-| `FAIL roast served (The roaster failed (404).)` | The LLM provider doesn't know the model name | Run `npm run models` (it lists what your Groq key can use), set `LLM_MODEL` to one of those ids in Vercel, redeploy, and run the smoke test again. The provider's own reason is in the deployment's Logs |
+| `FAIL roast served (The roaster failed (401).)` or `(403)` | The Groq key is wrong or revoked: create a new one, update `LLM_API_KEY` in Vercel, redeploy |
+| `FAIL roast served (The roaster failed (404).)` | The app tries to recover from a missing model by asking Groq which models your key can use. If it still fails, run `npm run models`, set `LLM_MODEL` in Vercel to one of the ids it prints, redeploy and run the smoke test again. The provider's own reason is in the deployment's Logs |
 | `FAIL roast served (Something went wrong. Try again.)` or `(500)` | Open the deployment's **Logs** in Vercel. `FLAGSMITH_ENVIRONMENT_KEY is not set` or `COOKIE_SECRET must be set` means a variable is missing: add it, redeploy |
 
 ## §5 — Register, then start the experiment (5 min)
@@ -139,38 +139,37 @@ Expected: `Experiment status: running`. From now on the flag is locked until the
   ```
   Expected: `Simulated 300 visitors (rehearsal only):`, one line per variant, and a reminder that the like rates were assumed.
   By [amendment 1](../prereg/experiment-1-amendment-1.md) these visitors go into the same experiment as the real ones, so the results
-  are mixed and everything that shows them must say so. Never ship a prompt from them (`npm run ship` refuses). If you would rather keep
-  simulated and real results apart, run it against a separate environment that has its own warehouse and its own setup.
+  are mixed and everything that shows them must say so. Never ship a prompt from them (`npm run ship` refuses).
 
-## §7 — Results and the winner (Saturday or Sunday)
+## §7 — Results (Saturday or Sunday)
+
+One command pulls the results, writes `data/results.json` and [RESULTS.md](RESULTS.md), commits those two files and pushes. Vercel
+redeploys and `/race` shows the numbers. Add `--simulated` if any of the traffic was simulated:
 
 ```bash
-npm run results -- --environment <client environment key> --experiment <id>
+npm run finalize -- --environment <client environment key> --experiment <id> --simulated
+```
+
+Expected: `Standings` with one line per variant (visitors, grain, and for each treatment its chance of beating control; control is the
+baseline and shows none), Flagsmith's sample-ratio check, `Committed and pushed`, and a block headed `Results paragraph` that you paste
+into the submission form. `--no-push` commits without pushing. If it says `Flagsmith has no results payload yet`, wait a minute and run it
+again; if it names other keys it did not expect, send the whole message, because `lib/results.ts` needs a small change.
+
+Then, if you want to ship a winner:
+
+```bash
 npm run ship -- --environment <client environment key> --experiment <id> --dry-run
 ```
 
-Expected from `results`: `Wrote data/results.json (3 variants, metric "Roast liked", simulated=false).` and one line per variant with
-visitors, grain and, for each treatment, its chance of beating control (control is the baseline and shows none), then
-Flagsmith's own sample-ratio check. Expected from `ship --dry-run`: either `Decision: WAIT. Nothing to ship.` with the
-reason, or `Decision: SHIP <variant>.` with the exact command it would run.
-
-If it says SHIP:
-
-1. `npm run ship -- --environment <client environment key> --experiment <id>`, then type the winner's name when asked.
-   Anything else cancels. It ends the experiment with `rollout_decision=<winner>`, which rolls the winner out through the same
-   flag. If Flagsmith rejects that, it stops with Flagsmith's exact error and nothing else changes: send it to me.
-2. Check in the dashboard that the flag now serves the winner.
-
-Either way, commit `data/results.json` (and `data/decision.json` if you shipped) and push. Vercel redeploys and `/race`
-shows the numbers.
-
-If `results` says `Flagsmith has no results payload yet`, wait a minute after the refresh and run it again. If it names
-other keys it did not expect, send the whole message: `lib/results.ts` needs a small change.
+Expected: either `Decision: WAIT. Nothing to ship.` with the reason, or `Decision: SHIP <variant>.` with the exact command it would
+run. If it says SHIP, run the same command without `--dry-run` and type the winner's name when asked. Anything else cancels. It ends the
+experiment with `rollout_decision=<winner>`; if Flagsmith rejects that, it stops with Flagsmith's exact error and changes nothing else.
+Check in the dashboard that the flag now serves the winner. Simulated results never ship.
 
 ## §8 — Submit (Sunday)
 
-1. Record the video from [demo-script.md](demo-script.md).
-2. Fill in [submission.md](submission.md) with the real numbers. Report simulated numbers separately, or not at all.
+1. Upload `video-output/winnow-demo.mp4` to YouTube (Unlisted) or Loom.
+2. Fill in the form from [submission.md](submission.md), pasting the results paragraph from §7. Report simulated numbers as simulated.
 3. Submit to **Track 01: Test Something Real** before the deadline in [QUESTIONS.md](QUESTIONS.md).
 4. Star https://github.com/Flagsmith/flagsmith for the bonus draw.
-5. Revoke any Master API key you created.
+5. Revoke any Master API key you created, and rotate any secret that appeared on a screen.

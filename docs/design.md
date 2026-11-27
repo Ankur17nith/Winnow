@@ -2,11 +2,9 @@
 
 Direction: **Paper threshing floor, printed in daylight.**
 
-Winnow shares a visual language with [Lifeline](https://github.com/Prashant-thakur77/LifeLine) (MIT): warm uncoated paper,
-riso-print ink overprinting slightly out of register, cut-paper depth with soft shadows, 2 px ink borders, offset ink
-shadows on what you can click, and big condensed poster type. The *concept* and every graphic are Winnow's own.
-Lifeline's sea becomes a threshing floor: the app separates **grain** (a roast users like) from **chaff** (one they
-don't).
+The look is warm uncoated paper, riso-print ink overprinting slightly out of register, cut-paper depth with soft shadows, 2 px ink
+borders, offset ink shadows on what you can click, and big condensed poster type. The idea behind it is winnowing: the app
+separates **grain** (a roast people like) from **chaff** (one they don't).
 
 ## The idea in one picture
 
@@ -116,7 +114,6 @@ Reduced motion: every animation is cut to its end state, no pinned slide, no aut
 - Buttons: 2 px ink border with a `3px 3px 0 ink` offset shadow that the button presses into.
 - Badges: printed tags with an ink edge. Notices: tinted paper with an ink edge.
 
-## Credit
+## Fonts
 
-The design language is adapted from Lifeline by Prashant Thakur (MIT). Fonts are open source (OFL). All Winnow artwork is
-original.
+Archivo, Martian Mono and IBM Plex Mono, all open fonts (OFL), self-hosted by `next/font`. All the artwork is drawn for Winnow.
