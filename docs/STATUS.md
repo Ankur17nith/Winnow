@@ -54,7 +54,10 @@ These are not known to be broken. They are unproven. In order of risk:
    if they are not there.
 4. **The results response, on this account.** `lib/results.ts` reads the shape documented from a live response in a teammate's
    repository (`results.payload.metrics[]` with `variants{n,sum}` and `inference{chance_to_win,lift,ci_low,ci_high}`,
-   `chance_to_win` being each treatment's chance of beating control). It is tested against a fixture of that shape, not yet
+   `chance_to_win` being each treatment's chance of beating control, as a teammate read it from Flagsmith's open-source stats
+   code). Flagsmith's own dashboard labels the same figure "Win probability" in its table and shows a "Chance to be best" card, and with
+   three arms "beats control" and "is the best of all three" are different things. Nobody has compared the dashboard's numbers with
+   `/race` yet. Do that when there is data, and use Flagsmith's own wording in anything you submit. It is tested against a fixture of that shape, not yet
    against this project's own experiment. If they differ it stops with an error that names the keys it saw.
 5. **Ending the experiment with a winner.** `npm run ship` calls `.../complete/` with `rollout_decision=<winner key>`.
    Only `rollout_decision=control` has been seen to work (a teammate's smoke test). If a treatment's key is rejected the

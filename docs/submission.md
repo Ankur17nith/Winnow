@@ -87,7 +87,7 @@ Metrics and events: the primary metric, "Roast liked", is the event `thumbs_up`.
 the same visitor, which fires early in a visit. "Roast requested" is `roast_requested`, a sanity check that fires for every roast.
 Every event uses the same anonymous identity as the exposure.
 
-Results: [fill in after the experiment has run: the number of visitors per arm, the like rate for each arm, each treatment's chance
+Results: [fill in after the experiment has run, using Flagsmith's own wording (its dashboard says "win probability"): the number of visitors per arm, the like rate for each arm, each treatment's chance
 of beating control and its 95% interval as Flagsmith reports them, and what the pre-set rule decided. If there is no clear winner,
 say so. State how much of the traffic, if any, was simulated.]
 

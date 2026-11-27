@@ -94,8 +94,8 @@ The hypothesis, the metrics and the decision rule are written down in [prereg/ex
 any data exists. `npm run prereg -- hash` fingerprints the file, and the setup script refuses to start an experiment if the
 file has changed since. We took that habit from a teammate's repo, [Fork in the Bill](https://github.com/Prashant-thakur77/fork-in-the-bill).
 
-Flagsmith reports each treatment's chance of beating control, and gives control no number because it is the baseline. Winnow
-follows that: `/race` shows each arm's like rate, and under each treatment that chance.
+Flagsmith reports each treatment's chance of beating control (its dashboard calls it win probability), and gives control no number
+because it is the baseline. Winnow follows that: `/race` shows each arm's like rate, and under each treatment that chance.
 
 ## What else is in here
 
