@@ -1,6 +1,6 @@
 {
   "name": "winnow",
-  "version": "0.10.0",
+  "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "description": "A/B test LLM prompts with Flagsmith Experimentation. Let your users pick the winning prompt.",
@@ -17,7 +17,8 @@
     "smoke": "node --experimental-strip-types scripts/smoke.ts",
     "prereg": "node --experimental-strip-types scripts/prereg.ts",
     "judge": "node --experimental-strip-types scripts/judge.ts",
-    "models": "node --experimental-strip-types scripts/llm-models.ts"
+    "models": "node --experimental-strip-types scripts/llm-models.ts",
+    "finalize": "node --experimental-strip-types scripts/finalize.ts"
   },
   "dependencies": {
     "@flagsmith/nodejs": "^9.4.0",

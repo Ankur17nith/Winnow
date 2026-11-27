@@ -4,6 +4,8 @@ export type SplitCheck =
   | { status: "ok" | "mismatch"; chi2: number; p: number; observed: number[]; expected: number[]; keys: string[] }
   | { status: "insufficient" | "unsupported"; reason: string };
 
+/** The allocation the experiment asks for: control takes the remainder of an even three-way split. */
+export const EXPECTED_SHARE: Record<string, number> = { control: 34, savage: 33, actionable: 33 };
 export const MIN_VISITORS_FOR_SPLIT_CHECK = 30;
 export const MISMATCH_P = 0.01;
 

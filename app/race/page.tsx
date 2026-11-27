@@ -4,7 +4,7 @@ import { DEFAULT_RULE, decide } from "@/lib/decision";
 import { explain } from "@/lib/explain";
 import { agreement } from "@/lib/judge";
 import { readJudge } from "@/lib/judgeData";
-import { splitCheck } from "@/lib/srm";
+import { EXPECTED_SHARE, splitCheck } from "@/lib/srm";
 import { readStandings } from "@/lib/standings";
 
 export const metadata: Metadata = { title: "The race · Winnow", description: "Three prompts, one control. Flagsmith Experimentation's chance that each beats it." };
@@ -12,15 +12,13 @@ export const dynamic = "force-dynamic";
 
 const COLOR: Record<string, string> = { control: "var(--sea)", savage: "var(--rescue)", actionable: "var(--mint)" };
 const KERNELS_MAX = 56;
-// The allocation the experiment asks for: control takes the remainder of an even three-way split.
-const SHARE: Record<string, number> = { control: 34, savage: 33, actionable: 33 };
 
 export default async function Race() {
   const standings = await readStandings();
   const judge = await readJudge();
   const verdict = agreement(judge, standings);
   const decision = decide(standings);
-  const split = standings ? splitCheck(standings.variants, standings.variants.map((v) => SHARE[v.key] ?? 100 / standings.variants.length)) : null;
+  const split = standings ? splitCheck(standings.variants, standings.variants.map((v) => EXPECTED_SHARE[v.key] ?? 100 / standings.variants.length)) : null;
   const leader = standings
     ? [...standings.variants].filter((v) => v.winProbability !== null).sort((a, b) => (b.winProbability as number) - (a.winProbability as number))[0] ?? null
     : null;
