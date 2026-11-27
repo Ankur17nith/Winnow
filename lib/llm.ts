@@ -53,7 +53,12 @@ export async function complete({ system, user, model }: Message): Promise<string
       if (text) return text;
       throw new LlmError("The roaster returned nothing.", 502);
     }
-    if (attempt === 1 || res.status < 500) throw new LlmError(`The roaster failed (${res.status}).`, 502);
+    if (attempt === 1 || res.status < 500) {
+      // The provider says why (for example "the model does not exist"). That goes in the server log, not to the visitor.
+      const detail = (await res.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 300);
+      console.error(`LLM provider returned ${res.status} for model "${effectiveModel(model)}": ${detail}`);
+      throw new LlmError(`The roaster failed (${res.status}).`, 502);
+    }
   }
   throw new LlmError("The roaster failed.", 502);
 }

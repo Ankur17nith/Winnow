@@ -16,7 +16,8 @@
     "setup:flagsmith": "node --experimental-strip-types scripts/setup-flagsmith.ts",
     "smoke": "node --experimental-strip-types scripts/smoke.ts",
     "prereg": "node --experimental-strip-types scripts/prereg.ts",
-    "judge": "node --experimental-strip-types scripts/judge.ts"
+    "judge": "node --experimental-strip-types scripts/judge.ts",
+    "models": "node --experimental-strip-types scripts/llm-models.ts"
   },
   "dependencies": {
     "@flagsmith/nodejs": "^9.4.0",
