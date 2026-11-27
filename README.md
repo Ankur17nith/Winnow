@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Ankur17nith/Winnow/actions/workflows/ci.yml/badge.svg)](https://github.com/Ankur17nith/Winnow/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-19%20passing-brightgreen)](#tests-and-checks)
+[![Tests](https://img.shields.io/badge/tests-22%20passing-brightgreen)](#tests-and-checks)
 [![Flagsmith](https://img.shields.io/badge/built%20with-Flagsmith%20Experimentation-7b5cff)](https://docs.flagsmith.com/experimentation)
 [![Hackathon](https://img.shields.io/badge/WeMakeDevs%20x%20Flagsmith-Track%2001%3A%20Test%20Something%20Real-black)](https://www.wemakedevs.org/hackathons/flagsmith)
 
@@ -29,7 +29,7 @@ LLM (Groq) writes the roasts. Nothing else is involved: no database, no accounts
 
 | At a glance | Value | Source |
 | --- | --- | --- |
-| Automated tests, all passing | 19 | `npm test` |
+| Automated tests, all passing | 22 | `npm test` |
 | Prompt variants under test | 3 (`control`, `savage`, `actionable`) | [lib/prompts.ts](lib/prompts.ts) |
 | Metrics | `thumbs_up` (primary), `roast_again` (fires early in a visit), `roast_requested` (sanity check) | [docs/experiment-design.md](docs/experiment-design.md) |
 | Decision rule, fixed in advance | a treatment needs at least a 90% chance of beating control and every arm needs 30 visitors | [lib/decision.ts](lib/decision.ts) |
@@ -62,7 +62,7 @@ No keys needed.
 
 ```bash
 npm install
-npm test                       # 19 tests
+npm test                       # 22 tests
 npm run lint                   # type check
 WINNOW_PREVIEW=1 COOKIE_SECRET=any-long-secret-here npm run dev
 ```
@@ -82,6 +82,9 @@ per arm, then run `npm run ship -- --dry-run`. It prints the exact `flagsmith fl
 - **The decision rule is pre-registered and hashed.** `prereg/experiment-1.md` is written before any data, hashed, and tagged;
   the experiment's hypothesis in Flagsmith is its text word for word, and the setup refuses to start an experiment whose
   file has changed since it was hashed. The habit comes from a teammate's repo, [Fork in the Bill](https://github.com/Prashant-thakur77/fork-in-the-bill).
+- **An AI judge, kept honest.** Before any visitor, an LLM scores what each prompt produces on six sample READMEs; afterwards `/race`
+  shows whether the judge's favourite matched the visitors'. It is labelled as not Flagsmith data, cannot ship anything, and
+  says that three prompts make one comparison, not a measure ([docs/judge.md](docs/judge.md)).
 - **Prompts are Flagsmith remote config.** The prompt text lives in the flag's variant values, so a prompt can be edited, or
   a fourth one added, in Flagsmith with no deploy. The safety rules are appended by the code and are not part of the flag,
   so a bad value can change the style of a roast but never remove them.
@@ -158,6 +161,7 @@ Statistical caveats (peeking, three arms, self-selected voters) are written down
 | `npm run simulate -- --users 300` | Rehearsal traffic with `sim_` identities (use a separate environment) |
 | `npm run results -- --environment <key> --experiment <id> [--simulated]` | Pull results with the Flagsmith CLI into `data/results.json` |
 | `npm run ship -- --environment <key> --experiment <id> [--dry-run]` | Apply the decision rule; end the experiment and roll the winner out only after a human types its name |
+| `npm run judge` | The AI-judge bench: an LLM scores each prompt's roast of six sample READMEs, shown on `/race` ([docs/judge.md](docs/judge.md)) |
 | `npm run prereg -- hash` / `verify` | Hash the pre-registration, and check it has not been edited since |
 | `npm run setup:flagsmith -- --environment <key> [--dry-run] [--start <id>]` | Create flags, metrics and the experiment in one go; `--start` starts it |
 | `npm run smoke -- <url>` | Nine checks against a running app: pages, headers, a refused cross-site POST, a roast, a vote, the share card |
@@ -179,7 +183,7 @@ Full list, with the test behind each control, in [docs/safety.md](docs/safety.md
 
 ## Tests and checks
 
-- `npm test`: 19 tests covering identity signing and tamper rejection, token expiry, prompt fallback and remote prompts, the
+- `npm test`: 22 tests covering identity signing and tamper rejection, token expiry, prompt fallback and remote prompts, the
   URL allow-list, length and per-IP caps, request guards, the decision rule, the results adapter, the split check, the
   plain-English explanation and `winnow-kit`.
 - `npm run lint` and `npm run build` run in [CI](.github/workflows/ci.yml) on every push.

@@ -13,6 +13,7 @@ prints the test count, and [STATUS.md](STATUS.md) says what is proven and what i
 | You are the person deploying it: every step, in order, with what you should see | [`human-runbook.md`](human-runbook.md) |
 | You want to know exactly what is being tested, how it is measured and when a winner is declared | [`experiment-design.md`](experiment-design.md) |
 | You want the decision rule as it was fixed before any data, and how to tell it has not been edited | [`../prereg/experiment-1.md`](../prereg/experiment-1.md), `npm run prereg -- verify` |
+| You want to know what the AI-judge bench is, and what it cannot tell you | [`judge.md`](judge.md) |
 | You want to know whether the app can be abused, and which test proves each control | [`safety.md`](safety.md) |
 | You want the request flow, the trust boundaries and why there is no database | [`architecture.md`](architecture.md) |
 | Something surprised us and you want to know why the code is the way it is | [`LEARNINGS.md`](LEARNINGS.md) |

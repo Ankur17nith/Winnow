@@ -7,7 +7,7 @@ yet, so no result exists. The steps that need accounts are in [human-runbook.md]
 
 | Area | Evidence |
 |---|---|
-| Identity, roast tokens, limits, request guards, decision rule, results adapter, `winnow-kit` | 19 unit tests, `npm test`, all passing on 27 Nov |
+| Identity, roast tokens, limits, request guards, decision rule, results adapter, `winnow-kit` | 22 unit tests, `npm test`, all passing on 27 Nov |
 | Types and production build | `npm run lint` (tsc) and `npm run build` clean; the same steps run in [CI](../.github/workflows/ci.yml) |
 | The whole visitor flow: paste, roast, vote, reveal, copy, share card | Driven in headless Chromium against a production build in preview mode, at 1280 and 390 px wide; no console errors |
 | Security headers and the content-security-policy | `curl -I` on a production build shows CSP, `X-Frame-Options: DENY`, `nosniff`, referrer policy; the page renders under them with no CSP violations |
@@ -52,9 +52,11 @@ These are not known to be broken. They are unproven. In order of risk:
    type definitions, not seen against a live experiment. If it is wrong the app falls back to the prompts in code and the
    roasts still work, but the flag's values would not be what is being tested. Check on the first smoke test: change a
    variant's value in Flagsmith and see the roast style change.
-7. **The default Groq model** (`llama-3.3-70b-versatile`). If roasts fail, set `LLM_MODEL` to one listed in the Groq
+7. **The AI judge against a real model.** `npm run judge` has run only in preview mode. Whether a real judge's replies parse as
+   a JSON object with three whole numbers, and how many come back unscorable, is unproven until a run with an `LLM_API_KEY`.
+8. **The default Groq model** (`llama-3.3-70b-versatile`). If roasts fail, set `LLM_MODEL` to one listed in the Groq
    console.
-8. **Traffic.** The track allows simulated traffic. Real visitors make a better story and are not guaranteed.
+9. **Traffic.** The track allows simulated traffic. Real visitors make a better story and are not guaranteed.
 
 ## Known limitations (by design, documented)
 

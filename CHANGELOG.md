@@ -2,6 +2,16 @@
 
 Dates are UTC. Versions are this repository's own; they are not published anywhere.
 
+## v0.9.0 — 27 Nov 2026 (an AI judge, kept honest)
+
+Added
+- **The AI-judge bench** (`npm run judge`, `lib/judge.ts`, `bench/readmes/`): an LLM scores each prompt's roast of six sample
+  READMEs from 1 to 5 on being specific, useful and civil. `/race` shows the scores, labelled as not Flagsmith data, and, once
+  visitors' results exist, whether the judge's favourite matched theirs, with the caveat that three prompts make one
+  comparison. Unscorable replies are counted as unscorable, never as zero. `JUDGE_MODEL` judges with a different model.
+- Preview mode produces clearly labelled stand-in numbers so the layout can be seen without a key. 3 more tests (22 in total).
+- `docs/judge.md`: what it is, why it is worth having, and what it cannot tell you.
+
 ## v0.8.0 — 27 Nov 2026 (results read the way Flagsmith reports them, and a pre-registration)
 
 Fixed
