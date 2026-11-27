@@ -59,7 +59,7 @@ const { variant, prompt } = await winnow.pick(userId); // exposure
 winnow.track(userId, "thumbs_up");                      // conversion
 await winnow.flush();</pre>`),
   slide(12, `<div class="title">${ring}<h1 class="word">WINN<b>O</b>W</h1><p class="tag">github.com/Ankur17nith/Winnow</p>
-    <p class="meta">Built with Next.js, Flagsmith Experimentation and Groq · Design language adapted from Lifeline (MIT)<br>Music in the demo: Sascha Ende, ende.app (CC BY 4.0) · Voices: ElevenLabs</p></div>`, "center"),
+    <p class="meta">Built with Next.js, Flagsmith Experimentation and Groq<br>Music in the demo: Sascha Ende, ende.app (CC BY 4.0) · Voices: ElevenLabs</p></div>`, "center"),
 ];
 
 const CSS = `
