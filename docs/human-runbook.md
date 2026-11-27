@@ -129,11 +129,18 @@ Expected: `Experiment status: running`. From now on the flag is locked until the
 
 - Post the link: the hackathon Discord, X or LinkedIn, friends. A personal link roasts a specific repo:
   `https://<your-app>.vercel.app/?repo=https://github.com/<owner>/<repo>`. Only roast repos whose owners asked.
-- Simulated traffic is allowed by the track. Run it only against a **separate** environment, never the real one:
+- Simulated traffic is allowed by the track. The experiment must be running first. The simulator talks to Flagsmith directly, so it
+  never touches the website, the LLM or the site's rate limits. Put the server-side key in the terminal without echoing it, then run it:
   ```bash
-  FLAGSMITH_ENVIRONMENT_KEY=<server key of a test environment> npm run simulate -- --users 300
+  read -rs FLAGSMITH_ENVIRONMENT_KEY && export FLAGSMITH_ENVIRONMENT_KEY
   ```
-  Expected: `Simulated 300 visitors (rehearsal only):` and one line per variant.
+  ```bash
+  npm run simulate -- --users 300
+  ```
+  Expected: `Simulated 300 visitors (rehearsal only):`, one line per variant, and a reminder that the like rates were assumed.
+  By [amendment 1](../prereg/experiment-1-amendment-1.md) these visitors go into the same experiment as the real ones, so the results
+  are mixed and everything that shows them must say so. Never ship a prompt from them (`npm run ship` refuses). If you would rather keep
+  simulated and real results apart, run it against a separate environment that has its own warehouse and its own setup.
 
 ## §7 — Results and the winner (Saturday or Sunday)
 
