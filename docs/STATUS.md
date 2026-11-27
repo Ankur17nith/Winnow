@@ -41,9 +41,14 @@ These are not known to be broken. They are unproven. In order of risk:
    responses. It looks for them defensively and stops naming the keys it saw if they are not there.
 4. **The results response.** `lib/results.ts` accepts a few likely field names and fails loudly with the keys it saw
    otherwise. Expect one small fix on the first real `npm run results`.
-5. **The default Groq model** (`llama-3.3-70b-versatile`). If roasts fail, set `LLM_MODEL` to one listed in the Groq
+5. **Remote prompts through the real SDK.** The app assumes `getExperimentFlag` returns the allocated variant's value in
+   `flag.value` and its key in `flag.variant`, and that the control group has no variant key. This is read from the SDK's
+   type definitions, not seen against a live experiment. If it is wrong the app falls back to the prompts in code and the
+   roasts still work, but the flag's values would not be what is being tested. Check on the first smoke test: change a
+   variant's value in Flagsmith and see the roast style change.
+6. **The default Groq model** (`llama-3.3-70b-versatile`). If roasts fail, set `LLM_MODEL` to one listed in the Groq
    console.
-6. **Traffic.** The track allows simulated traffic. Real visitors make a better story and are not guaranteed.
+7. **Traffic.** The track allows simulated traffic. Real visitors make a better story and are not guaranteed.
 
 ## Known limitations (by design, documented)
 
