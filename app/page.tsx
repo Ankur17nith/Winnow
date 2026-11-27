@@ -1,5 +1,7 @@
-import { SieveRing } from "@/components/Art";
+import { SieveRing, WaveStrip } from "@/components/Art";
+import Floor from "@/components/Floor";
 import Roaster from "@/components/Roaster";
+import { readStandings } from "@/lib/standings";
 
 const STEPS = [
   ["01", "A flag deals a basket", "Each visitor silently gets one of three prompts from a multivariate Flagsmith flag. You never see which."],
@@ -9,15 +11,17 @@ const STEPS = [
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ repo?: string }> }) {
   const { repo } = await searchParams;
+  const standings = await readStandings();
   const initialRepo = typeof repo === "string" && /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/.test(repo) ? repo : undefined;
   return (
-    <main>
+    <main className="home">
       <header className="top">
         <a className="brand" href="/" aria-label="Winnow home"><SieveRing /> <span>WINN<b>O</b>W</span></a>
         <nav className="nav"><a className="btn small" href="#how">How it works</a> <a className="btn small" href="/race">The race</a></nav>
       </header>
 
-      <section className="hero">
+      <section className="hero hero-grid">
+        <div className="hero-copy">
         <p className="eyebrow">A/B test of LLM prompts</p>
         <h1 aria-label="Paste your README. Get roasted.">
           <span className="line"><span>Paste your</span></span>
@@ -28,9 +32,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
           Every visitor silently tests a different roast prompt. Your vote separates the grain from the chaff, and
           Flagsmith Experimentation tells us which prompt wins.
         </p>
+        </div>
+        <Floor standings={standings} compact className="only-wide" />
       </section>
 
+      <WaveStrip />
+
       <Roaster initialRepo={initialRepo} />
+
+      <Floor standings={standings} className="only-narrow" />
 
       <section className="band" aria-label="Disclosure">
         <p>This page runs a live A/B test of prompts. Votes are anonymous and tied only to a random cookie.</p>
