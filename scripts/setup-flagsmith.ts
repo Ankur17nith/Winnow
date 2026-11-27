@@ -9,8 +9,10 @@
  * experiment (NOT started).
  * Safe to re-run: existing flags, variants and metrics are reused. Any unexpected error stops with the CLI's own message.
  */
+import { existsSync, readFileSync } from "node:fs";
 import { BODIES, VARIANTS } from "../lib/prompts.ts";
-import { arg, flag, flagsmith } from "./cli.ts";
+import { extractHypothesis, parseHashes, sha256 } from "../lib/prereg.ts";
+import { arg, flag, flagsmith, flagsmithStatus } from "./cli.ts";
 
 const env = arg("environment");
 if (!env) {
@@ -62,7 +64,21 @@ function collect(v: unknown, key: string, out: Json[] = []): Json[] {
 
 // --start: begin a created experiment once the deployed app passes its smoke test.
 const startId = arg("start");
+const PREREG = "prereg/experiment-1.md";
+function preregCheck(): void {
+  if (!existsSync("prereg/HASHES.txt")) {
+    console.error("The pre-registration has not been hashed. Run `npm run prereg -- hash`, commit it, tag it (git tag -a prereg-exp1), then start.");
+    process.exit(1);
+  }
+  const want = parseHashes(readFileSync("prereg/HASHES.txt", "utf8"))[PREREG];
+  if (want !== sha256(readFileSync(PREREG, "utf8"))) {
+    console.error(`${PREREG} has changed since it was hashed. A registered file is never edited: write an amendment, or hash again before the experiment starts.`);
+    process.exit(1);
+  }
+}
+
 if (startId) {
+  if (!dry) preregCheck();
   console.log(`Starting experiment ${startId}...`);
   run(["api", `${base}/experiments/${startId}/start/`, "--method", "POST"]);
   const status = dry ? "running" : (json(run(["api", `${base}/experiments/${startId}/`, "--json"]), "experiment") as Json).status;
@@ -81,31 +97,37 @@ if (!dry) {
 } else run(["api", `${base}/warehouse-connections/`, "--json"]);
 
 console.log("2/5 Flags");
-const existing = dry ? null : flagsmith(["feature", "get", "roast_prompt", "--json"], { fatal: false });
+/** Exists, missing, or a real failure: the CLI says "not found" when a feature does not exist, and anything else must stop. */
+function exists(name: string): boolean {
+  if (dry) return false;
+  const r = flagsmithStatus(["feature", "get", name, "--json"]);
+  if (r.status === 0) return true;
+  if (/not found/i.test(r.stderr)) return false;
+  console.error(`\nflagsmith feature get ${name} failed:\n${(r.stderr || r.stdout).trim()}`);
+  process.exit(1);
+}
 // The prompt bodies are the flag's values (remote config): control is the flag's own value, the others are keyed variants.
 // The safety rules are appended by the app, never stored here.
-if (!existing) run(["feature", "create", "roast_prompt", "--value", BODIES.control, "--enabled"]);
+if (!exists("roast_prompt")) run(["feature", "create", "roast_prompt", "--value", BODIES.control, "--enabled"]);
 else console.log("  roast_prompt exists, reusing it (values untouched)");
-let feature = existing ? json(existing, "feature get") : {};
-const keyed = (f: unknown) => new Set(collect(f, "key").map((o) => o.key));
+const haveVariants = (): Json[] => (dry ? [] : list(json(run(["feature", "variant", "list", "roast_prompt", "--json"]), "variant list")));
+const haveKeys = new Set(haveVariants().map((o) => o.key));
 for (const v of VARIANTS.filter((x) => x !== "control")) {
-  if (keyed(feature).has(v)) {
+  if (haveKeys.has(v)) {
     console.log(`  variant ${v} exists`);
     continue;
   }
   run(["feature", "variant", "add", "roast_prompt", "--value", BODIES[v as keyof typeof BODIES], "--key", v, "--weight", "0"]);
 }
-if (!dry && !flagsmith(["feature", "get", "roasts_enabled", "--json"], { fatal: false })) {
-  run(["feature", "create", "roasts_enabled", "--enabled"]);
-} else if (dry) run(["feature", "create", "roasts_enabled", "--enabled"]);
+if (!exists("roasts_enabled")) run(["feature", "create", "roasts_enabled", "--enabled"]);
 
-feature = dry ? { id: 0 } : json(run(["feature", "get", "roast_prompt", "--json"]), "feature get");
-const featureId = dry ? 0 : idOf(feature, "roast_prompt");
+const featureId = dry ? 0 : idOf(json(run(["feature", "get", "roast_prompt", "--json"]), "feature get"), "roast_prompt");
 const variantIds: Record<string, number> = {};
+const rows = haveVariants();
 for (const v of VARIANTS.filter((x) => x !== "control")) {
-  const row = collect(feature, "key").find((o) => o.key === v);
+  const row = rows.find((o) => o.key === v);
   if (!dry && (!row || typeof row.id !== "number")) {
-    console.error(`Variant ${v} has no id or key in 'feature get' output. Every variation needs a key. Output keys: ${Object.keys(feature as Json).join(", ")}`);
+    console.error(`Variant ${v} was not found in \`feature variant list\`. Every variation needs a key. Rows seen: ${JSON.stringify(rows).slice(0, 300)}`);
     process.exit(1);
   }
   variantIds[v] = dry ? 0 : (row!.id as number);
@@ -114,11 +136,11 @@ console.log(`  roast_prompt id ${featureId}, variants ${JSON.stringify(variantId
 
 console.log("3/5 Metrics");
 const METRICS = [
-  { name: "Roast liked", event: "thumbs_up" },
-  { name: "Roasted again", event: "roast_again" },
-  { name: "Roast requested", event: "roast_requested" },
+  { name: "Roast liked", event: "thumbs_up", note: "Primary: the visitor voted grain on the roast" },
+  { name: "Roasted again", event: "roast_again", note: "Early signal: the visitor asked for a second roast" },
+  { name: "Roast requested", event: "roast_requested", note: "Sanity check: fires for every served roast, so it cannot separate prompts" },
 ];
-const known = dry ? [] : list(json(run(["api", `${base}/experiment-metrics/`, "--json"]), "metric list"));
+const known = dry ? [] : list(json(run(["api", `${base}/experiment-metrics/?page_size=999`, "--json"]), "metric list"));
 const metricIds: number[] = [];
 for (const m of METRICS) {
   const found = known.find((k) => k.name === m.name);
@@ -127,18 +149,19 @@ for (const m of METRICS) {
     metricIds.push(idOf(found, m.name));
     continue;
   }
-  const body = JSON.stringify({ name: m.name, aggregation: "occurrence", direction: "up", definition: { version: 1, event: m.event } });
+  const body = JSON.stringify({ name: m.name, description: m.note, aggregation: "occurrence", direction: "up", definition: { version: 1, event: m.event } });
   const created = run(["api", `${base}/experiment-metrics/`, "--method", "POST", "--input", "-", "--json"], body);
   metricIds.push(dry ? 0 : idOf(json(created, "metric create"), m.name));
 }
 
 console.log("4/5 Experiment (created, not started)");
+if (!existsSync("prereg/HASHES.txt")) console.log("  note: the pre-registration is not hashed yet. Hash, commit and tag it before starting (npm run prereg -- hash).");
 const others = VARIANTS.filter((v) => v !== "control");
 const share = Math.floor(100 / VARIANTS.length); // 33 each; control gets the remainder (34)
 const experiment = {
   feature: featureId,
   name: "Winnow roast prompt",
-  hypothesis: "The actionable prompt earns more thumbs-up than the friendly control or the savage prompt.",
+  hypothesis: extractHypothesis(readFileSync(PREREG, "utf8")), // the registered words, verbatim
   metrics: metricIds.map((metric) => ({ metric, expected_direction: "increase" })),
   experiment_rollout: {
     enabled: true,

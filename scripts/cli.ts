@@ -18,6 +18,13 @@ export function flagsmith(args: string[], { input, fatal = true }: Opts = {}): s
   return r.stdout;
 }
 
+/** Like flagsmith(), but never exits: returns the exit status and both streams, so a caller can tell "not found" from a real failure. */
+export function flagsmithStatus(args: string[]): { status: number; stdout: string; stderr: string } {
+  const r = spawnSync("flagsmith", [...args, "--no-input"], { encoding: "utf8" });
+  const failed = r.error !== undefined || r.status !== 0 || (!r.stdout.trim() && r.stderr.trim() !== "");
+  return { status: failed ? (r.status || 1) : 0, stdout: r.stdout ?? "", stderr: r.error ? r.error.message : (r.stderr ?? "") };
+}
+
 export function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
   return i > -1 ? process.argv[i + 1] : undefined;
