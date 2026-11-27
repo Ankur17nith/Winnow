@@ -36,3 +36,9 @@ await flushEvents();
 await getFlagsmith().close();
 console.log(`Simulated ${users} visitors (rehearsal only):`);
 for (const [k, v] of Object.entries(counts)) console.log(`  ${k.padEnd(12)} ${v.n} exposed, ${v.up} grain, ${v.again} came back`);
+const assumed = (r: Record<string, number>) => Object.entries(r).map(([k, p]) => `${k} ${Math.round(p * 100)}%`).join(", ");
+console.log(
+  `\nThese visitors are not real people. Whether each one liked the roast was drawn from rates we ASSUMED, not measured (liked: ${assumed(TRUE_RATE)}; ` +
+    `came back: ${assumed(AGAIN_RATE)}). Any result built on them shows that the pipeline works, not which prompt people prefer. ` +
+    `Say so wherever you show it.`,
+);
