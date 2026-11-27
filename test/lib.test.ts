@@ -283,3 +283,15 @@ test("judge: agreement compares the judge's favourite with the visitors' best tr
   assert.equal(agreement(jr({ control: 3, savage: 4, actionable: 5 }), null).status, "insufficient");
   assert.equal(agreement(jr({ control: null, savage: null, actionable: 5 }), st(0.9, 0.3)).status, "insufficient");
 });
+
+const { looksFailed } = await import("../scripts/cli.ts");
+test("cli wrapper: a success message on stderr is not a failure, an error line or a non-zero exit is", () => {
+  assert.equal(looksFailed(0, "", "✓ Added variant You are a merciless comedian (37805) to roast_prompt\n"), false);
+  assert.equal(looksFailed(0, "", "✓ Created feature roast_prompt\n"), false);
+  assert.equal(looksFailed(0, '{"id":1}', "some note\n"), false);
+  assert.equal(looksFailed(0, "", ""), false);
+  assert.equal(looksFailed(0, "", 'Error: OS keychain unavailable: exec: "dbus-launch" not found\nSet FLAGSMITH_API_KEY...\n'), true);
+  assert.equal(looksFailed(0, "", "  error: something else\n"), true);
+  assert.equal(looksFailed(1, '{"id":1}', ""), true);
+  assert.equal(looksFailed(null, "", "", new Error("spawn flagsmith ENOENT")), true);
+});
