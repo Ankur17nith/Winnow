@@ -1,5 +1,6 @@
 import { Flagsmith } from "@flagsmith/nodejs";
 import { previewMode, previewVariant } from "./preview.ts";
+import { VARIANTS } from "./prompts.ts";
 
 /**
  * Server-side Flagsmith client with Experimentation events enabled.
@@ -51,14 +52,18 @@ export async function roastsEnabled(identity: string): Promise<boolean> {
 }
 
 /**
- * Pick the variant for this identity. getExperimentFlag records the exposure by itself,
- * so call it only when a roast is actually served.
+ * Pick the variant for this identity. getExperimentFlag records the exposure by itself, so call it only when a roast is
+ * actually served. Returns the variant key (for analytics and the fallback prompt) and the variant's value (the prompt
+ * body, when the flag holds remote config).
  */
-export async function pickVariant(identity: string): Promise<string> {
-  if (previewMode()) return previewVariant(identity);
+export async function pickVariant(identity: string): Promise<{ key: string; value: unknown }> {
+  if (previewMode()) return { key: previewVariant(identity), value: undefined };
   const flag = await getFlagsmith().getExperimentFlag(FLAG_PROMPT, identity);
-  const key = (flag as { variant?: string }).variant ?? (typeof flag.value === "string" ? flag.value : "control");
-  return key || "control";
+  const named = (flag as { variant?: string }).variant;
+  // The control group has no variant key; its value is the flag's own value. A value that is itself a variant name is
+  // the old convention and still works.
+  const key = named ?? (typeof flag.value === "string" && (VARIANTS as readonly string[]).includes(flag.value) ? flag.value : "control");
+  return { key, value: flag.value };
 }
 
 export function trackEvent(identity: string, event: string): void {

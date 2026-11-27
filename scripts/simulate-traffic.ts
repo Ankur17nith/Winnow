@@ -19,7 +19,7 @@ const rand = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 429496
 const counts: Record<string, { n: number; up: number; again: number }> = {};
 for (let i = 0; i < users; i++) {
   const id = `sim_${i}`;
-  const variant = await pickVariant(id);
+  const variant = (await pickVariant(id)).key;
   const c = (counts[variant] ??= { n: 0, up: 0, again: 0 });
   c.n++;
   trackEvent(id, EVENT_REQUESTED);

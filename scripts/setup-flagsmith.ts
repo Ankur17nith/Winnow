@@ -5,10 +5,11 @@
  *   npm run setup:flagsmith -- --environment <client environment key> [--dry-run]
  *   npm run setup:flagsmith -- --environment <client environment key> --start <experiment id>
  *
- * Steps: warehouse check, flags and keyed variants, three metrics, experiment (NOT started).
+ * Steps: warehouse check, flags and keyed variants whose values are the prompt bodies (remote config), three metrics,
+ * experiment (NOT started).
  * Safe to re-run: existing flags, variants and metrics are reused. Any unexpected error stops with the CLI's own message.
  */
-import { VARIANTS } from "../lib/prompts.ts";
+import { BODIES, VARIANTS } from "../lib/prompts.ts";
 import { arg, flag, flagsmith } from "./cli.ts";
 
 const env = arg("environment");
@@ -81,8 +82,10 @@ if (!dry) {
 
 console.log("2/5 Flags");
 const existing = dry ? null : flagsmith(["feature", "get", "roast_prompt", "--json"], { fatal: false });
-if (!existing) run(["feature", "create", "roast_prompt", "--value", "control", "--enabled"]);
-else console.log("  roast_prompt exists, reusing it");
+// The prompt bodies are the flag's values (remote config): control is the flag's own value, the others are keyed variants.
+// The safety rules are appended by the app, never stored here.
+if (!existing) run(["feature", "create", "roast_prompt", "--value", BODIES.control, "--enabled"]);
+else console.log("  roast_prompt exists, reusing it (values untouched)");
 let feature = existing ? json(existing, "feature get") : {};
 const keyed = (f: unknown) => new Set(collect(f, "key").map((o) => o.key));
 for (const v of VARIANTS.filter((x) => x !== "control")) {
@@ -90,7 +93,7 @@ for (const v of VARIANTS.filter((x) => x !== "control")) {
     console.log(`  variant ${v} exists`);
     continue;
   }
-  run(["feature", "variant", "add", "roast_prompt", "--value", v, "--key", v, "--weight", "0"]);
+  run(["feature", "variant", "add", "roast_prompt", "--value", BODIES[v as keyof typeof BODIES], "--key", v, "--weight", "0"]);
 }
 if (!dry && !flagsmith(["feature", "get", "roasts_enabled", "--json"], { fatal: false })) {
   run(["feature", "create", "roasts_enabled", "--enabled"]);
@@ -140,7 +143,7 @@ const experiment = {
   experiment_rollout: {
     enabled: true,
     rollout_percentage: 100,
-    feature_state_value: { type: "string", value: "control" },
+    feature_state_value: { type: "string", value: BODIES.control },
     multivariate_feature_state_values: others.map((v) => ({ multivariate_feature_option: variantIds[v], percentage_allocation: share })),
   },
 };

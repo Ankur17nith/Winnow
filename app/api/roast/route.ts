@@ -6,7 +6,7 @@ import { IDENTITY_COOKIE, newIdentity, readIdentity, signRoastToken } from "@/li
 import { clientIp, guardRequest } from "@/lib/guard";
 import { InputError, checkLength, fetchReadme, parseRepoUrl, takeIpQuota, takeQuota } from "@/lib/limits";
 import { LlmError, complete } from "@/lib/llm";
-import { promptFor } from "@/lib/prompts";
+import { resolvePrompt } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,7 +55,8 @@ export async function POST(request: Request) {
     }
 
     // The exposure is recorded here, and only here: a roast is actually being served.
-    const { variant, system } = promptFor(await pickVariant(identity));
+    const picked = await pickVariant(identity);
+    const { variant, system } = resolvePrompt(picked.key, picked.value);
     const roast = await complete({ system, user: `<readme>\n${readme}\n</readme>` });
 
     // Early-visit events. roast_requested is a sanity check; roast_again separates prompts (the first roast brought them back).
