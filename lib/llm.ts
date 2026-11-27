@@ -1,10 +1,16 @@
 import { previewMode, previewRoast } from "./preview.ts";
 
-type Message = { system: string; user: string };
+type Message = { system: string; user: string; model?: string };
 
 const PROVIDERS = {
   groq: { url: "https://api.groq.com/openai/v1/chat/completions", defaultModel: "llama-3.3-70b-versatile" },
 } as const;
+
+/** The model a call would use: an explicit override, else LLM_MODEL, else the provider's default. */
+export function effectiveModel(override?: string): string {
+  const provider = (process.env.LLM_PROVIDER ?? "groq") as keyof typeof PROVIDERS;
+  return override || process.env.LLM_MODEL || PROVIDERS[provider]?.defaultModel || "unknown";
+}
 
 export class LlmError extends Error {
   status: number;
@@ -15,7 +21,7 @@ export class LlmError extends Error {
 }
 
 /** One function over a free-tier provider. Swap the provider here without touching the app. */
-export async function complete({ system, user }: Message): Promise<string> {
+export async function complete({ system, user, model }: Message): Promise<string> {
   if (previewMode()) return previewRoast(system);
   const provider = (process.env.LLM_PROVIDER ?? "groq") as keyof typeof PROVIDERS;
   const config = PROVIDERS[provider];
@@ -24,7 +30,7 @@ export async function complete({ system, user }: Message): Promise<string> {
   if (!key) throw new LlmError("LLM_API_KEY is not set.", 500);
 
   const body = JSON.stringify({
-    model: process.env.LLM_MODEL || config.defaultModel,
+    model: model || process.env.LLM_MODEL || config.defaultModel,
     temperature: 0.8,
     max_tokens: 500,
     messages: [
