@@ -2,6 +2,25 @@
 
 Dates are UTC. Versions are this repository's own; they are not published anywhere.
 
+## v1.0.0 — 27 Nov 2026 (finished: nothing left to edit by hand)
+
+Added
+- `npm run finalize`: pulls results, writes `data/results.json` and `docs/RESULTS.md`, commits only those two files, pushes, and prints the
+  text for the submission form's results field. `--simulated` labels the snapshot; `--no-push` stops after the commit.
+- `npm run models`, and model discovery in `lib/llm.ts`: if the default LLM model isn't available to the key, the app picks a chat model the
+  key can use and retries. An explicit `LLM_MODEL` is never replaced.
+- Real artwork for the README from the final demo video: the visitor flow, the architecture diagram and the forged-vote refusals.
+- The demo's music is bundled with its CC BY 4.0 credit.
+
+Changed
+- The README, the docs index, the runbook, the submission answers, STATUS and the video README were rewritten around the finalize flow, with
+  no blanks that need a file edit.
+- The demo outputs are named `video-output/winnow-demo.*`.
+
+Removed
+- `docs/plan.md`, `docs/implementation.md` and `docs/flagsmith-setup.md`: they described the work before it was built and had gone stale. The
+  runbook, experiment design and architecture documents replace them.
+
 ## v0.10.0 — 27 Nov 2026 (the home page shows the experiment)
 
 Added
