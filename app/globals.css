@@ -15,6 +15,7 @@ body {
   background-image: radial-gradient(rgb(11 21 51 / 0.07) 1px, transparent 1px); background-size: 7px 7px;
 }
 main { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+body { overflow-x: clip }
 a { color: var(--sea-deep); }
 :focus-visible { outline: 3px solid var(--sea); outline-offset: 3px; }
 ::selection { background: var(--grain); color: var(--ink); }
@@ -38,6 +39,7 @@ a { color: var(--sea-deep); }
 .btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
 
 .hero { padding: 40px 0 28px; max-width: 880px; }
+.hero.hero-grid { max-width: none; display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: 36px; align-items: center }
 h1 { margin: 18px 0 20px; color: var(--ink); text-transform: uppercase; font-weight: 800; font-stretch: 70%;
   font-size: clamp(52px, 10vw, 118px); line-height: .86; letter-spacing: -.01em; }
 h1 .line { display: block; overflow: hidden; padding-bottom: .06em; }
@@ -106,7 +108,7 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 .step h3 { color: var(--ink); font-size: 22px; line-height: 1.1; margin: 12px 0 8px; font-weight: 800; }
 .step p { margin: 0; }
 
-.foot { margin: 0 -16px; background: var(--sea-deep); color: var(--paper); }
+.foot { margin: 0 calc(50% - 50vw); background: var(--sea-deep); color: var(--paper); }
 .wave { height: 28px; background: var(--paper); -webkit-mask: radial-gradient(14px at 14px 0, #0000 98%, #000) 0 0 / 28px 100%; mask: radial-gradient(14px at 14px 0, #0000 98%, #000) 0 0 / 28px 100%; transform: rotate(180deg); }
 .foot-body { max-width: 1120px; margin: 0 auto; padding: 24px 16px 40px; }
 .foot a { color: var(--grain); }
@@ -165,3 +167,62 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 .judge-bars .bar i { display: block; height: 100%; background: var(--sea) }
 .judge-bars em { grid-column: 2 / 4; font: 400 12px var(--font-plex), monospace; color: var(--muted); font-style: normal; margin-top: -4px }
 .judge .split { margin: 6px 0 0 }
+
+/* a strip of paper waves under the hero text */
+.strip { position: relative; height: 92px; margin: 8px calc(50% - 50vw) 28px; overflow: hidden; pointer-events: none }
+.wave-l { position: absolute; left: -4%; bottom: 0; width: 108%; height: 100%; will-change: transform; filter: none }
+.w1 { animation: sheet-a 46s linear infinite alternate } .w2 { animation: sheet-b 34s linear infinite alternate } .w3 { animation: sheet-a 26s linear infinite alternate }
+@keyframes sheet-a { from { transform: translateX(-2.2%) } to { transform: translateX(2.2%) } }
+@keyframes sheet-b { from { transform: translateX(2.2%) } to { transform: translateX(-2.2%) } }
+
+/* the roast wipes in */
+.ticket pre.wipe { animation: wipe 1.1s cubic-bezier(.2, .8, .2, 1) both }
+@keyframes wipe { from { clip-path: inset(0 0 100% 0) } to { clip-path: inset(0 0 -4px 0) } }
+
+/* your vote lands */
+.flyer { position: fixed; left: 0; top: 0; width: 18px; height: 26px; z-index: 60; pointer-events: none; border-radius: 50%; border: 2.5px solid var(--ink) }
+.flyer.grain { background: var(--mint) } .flyer.chaff { background: var(--chaff); border-radius: 3px 14px 3px 14px }
+.reveal .variant { display: inline-block; transition: transform .25s var(--ease) }
+.reveal .variant.landed { animation: landed .6s var(--ease) }
+@keyframes landed { 0% { transform: scale(1) } 35% { transform: scale(1.12) rotate(-1.5deg) } 100% { transform: scale(1) } }
+
+/* the live floor */
+.floor { padding: 8px 0 56px }
+.floor-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 22px }
+.section-title.small { font-size: clamp(36px, 5vw, 64px); margin: 8px 0 0 }
+.baskets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px }
+.bskt { margin: 0; background: var(--card); border: 2px solid var(--ink); border-radius: 12px; padding: 18px 18px 20px; display: grid; gap: 8px; align-content: start }
+.mini-basket { width: 100%; max-width: 240px; justify-self: center; display: block; overflow: visible }
+.mk { transform-box: fill-box; transform-origin: center; animation: drift 5.5s ease-in-out infinite alternate }
+.mk1 { animation-duration: 7s; animation-delay: -2s } .mk2 { animation-duration: 4.6s; animation-delay: -1s }
+.pile-mini { display: flex; flex-wrap: wrap-reverse; justify-content: center; align-content: flex-start; gap: 3px; min-height: 96px; max-width: 136px; margin: 4px auto 0; padding: 8px 0 0; border-top: 2px dashed var(--line-strong); }
+.pile-mini i { width: 15px; height: 22px; border-radius: 50%; background: var(--c); border: 2px solid var(--ink); animation: settle .7s var(--ease) both }
+.pile-mini i:nth-child(3n) { transform: rotate(-14deg) } .pile-mini i:nth-child(3n+1) { transform: rotate(10deg) }
+.bskt figcaption { display: grid; gap: 2px }
+.bskt .vname { font: 800 26px/1 var(--font-archivo); font-stretch: 70%; text-transform: uppercase; color: var(--ink) }
+.bskt .pct { font: 300 34px/1.1 var(--font-martian), monospace; color: var(--ink) }
+.bskt .meta { font: 400 12px/1.4 var(--font-plex), monospace; color: var(--muted) }
+.floor > .note { margin: 14px 0 0 }
+@media (max-width: 860px) { .baskets { grid-template-columns: 1fr } .strip { height: 64px } }
+
+/* compact floor: the experiment in the hero */
+.floor.compact { padding: 0; align-self: center }
+.floor.compact .floor-head { margin-bottom: 12px; align-items: center }
+.floor-title { margin: 4px 0 0; font: 800 28px/1 var(--font-archivo); font-stretch: 70%; text-transform: uppercase; color: var(--ink) }
+.floor.compact .baskets { gap: 10px }
+.floor.compact .bskt { padding: 10px 8px 12px; gap: 4px }
+.floor.compact .mini-basket { max-width: 150px }
+.floor.compact .pile-mini { max-width: 92px; min-height: 76px }
+.floor.compact .pile-mini i { width: 12px; height: 18px; border-width: 1.5px }
+.floor.compact .vname { font-size: 18px }
+.floor.compact .pct { font-size: 20px }
+.floor.compact .meta { font-size: 11px }
+.floor.compact > .note { font-size: 12px; margin: 10px 0 0 }
+h1 { }
+.hero-grid h1 { font-size: clamp(44px, 6vw, 88px) }
+.only-narrow { display: none }
+@media (max-width: 980px) { .hero.hero-grid { grid-template-columns: 1fr } .only-wide { display: none } .only-narrow { display: block } .hero-grid h1 { font-size: clamp(48px, 13vw, 96px) } }
+@media (max-width: 560px) { .floor.compact .meta { display: none } .floor.compact .baskets { gap: 6px } .floor.compact .pct { font-size: 15px } .floor.compact .vname { font-size: 14px } .floor.compact .pile-mini { max-width: 64px } }
+
+.nav .btn { white-space: nowrap }
+@media (max-width: 480px) { .nav .btn:first-child { display: none } }

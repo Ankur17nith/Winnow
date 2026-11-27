@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Basket, Stamp } from "./Art";
 
 type Standing = { key: string; exposures: number; conversions: number; winProbability: number | null };
@@ -74,6 +74,45 @@ export default function Roaster({ initialRepo }: { initialRepo?: string }) {
     }
   }
 
+  // Your vote lands: a kernel (or a bit of chaff) flies from the stamp you pressed to the prompt you tasted. It waits for the
+  // reveal's entrance to settle so it lands on the final position, and it is skipped under reduced motion.
+  useEffect(() => {
+    if (!reveal || !vote || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let el: HTMLDivElement | null = null;
+    let anim: Animation | null = null;
+    const timer = window.setTimeout(() => {
+      const from = document.querySelector<HTMLElement>(vote === "up" ? ".stamp.grain" : ".stamp.chaff");
+      const to = document.querySelector<HTMLElement>(".reveal .variant");
+      if (!from || !to) return;
+      const a = from.getBoundingClientRect();
+      const b = to.getBoundingClientRect();
+      const x0 = a.left + a.width / 2 - 9, y0 = a.top + a.height / 2 - 13;
+      const x1 = b.left + 14, y1 = b.top + b.height / 2 - 13;
+      el = document.createElement("div");
+      el.className = `flyer ${vote === "up" ? "grain" : "chaff"}`;
+      el.setAttribute("aria-hidden", "true");
+      document.body.appendChild(el);
+      anim = el.animate(
+        [
+          { transform: `translate(${x0}px, ${y0}px) scale(1.5) rotate(0deg)` },
+          { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 70}px) scale(1.15) rotate(170deg)`, offset: 0.5 },
+          { transform: `translate(${x1}px, ${y1}px) scale(.85) rotate(330deg)` },
+        ],
+        { duration: 900, easing: "cubic-bezier(.45, 0, .3, 1)", fill: "forwards" },
+      );
+      anim.onfinish = () => {
+        el?.remove();
+        to.classList.add("landed");
+        window.setTimeout(() => to.classList.remove("landed"), 700);
+      };
+    }, 820);
+    return () => {
+      window.clearTimeout(timer);
+      anim?.cancel();
+      el?.remove();
+    };
+  }, [reveal, vote]);
+
   const loading = phase === "loading";
   const canSubmit = !loading && (mode === "paste" ? text.trim().length >= 20 : url.trim().length > 10);
 
@@ -112,7 +151,7 @@ export default function Roaster({ initialRepo }: { initialRepo?: string }) {
         {phase === "done" && (
           <div className="ticket rise">
             <p className="eyebrow">Your roast</p>
-            <pre>{roast}</pre>
+            <pre className="wipe">{roast}</pre>
             <div className="vote" role="group" aria-label="Was this roast good?">
               <button className={`stamp grain${vote === "up" ? " on" : ""}`} disabled={!!vote && vote !== "up"} onClick={() => cast("up")} aria-pressed={vote === "up"}>
                 <Stamp kind="grain" pressed={vote === "up"} faded={vote === "down"} /> Grain

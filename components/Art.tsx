@@ -51,6 +51,23 @@ export function Basket({ shaking = false }: { shaking?: boolean }) {
   );
 }
 
+/** A strip of cut-paper waves under the hero text. Whole layers drift by transform only; the shapes are drawn once. */
+export function WaveStrip() {
+  return (
+    <div className="strip" aria-hidden="true">
+      <svg className="wave-l w1" viewBox="0 0 1200 90" preserveAspectRatio="none">
+        <path d="M-60 46 Q60 6 180 40 T420 38 T660 44 T900 34 T1140 46 T1260 38 V90 H-60 Z" fill="#ffc93c" stroke="#0b1533" strokeWidth="3" />
+      </svg>
+      <svg className="wave-l w2" viewBox="0 0 1200 90" preserveAspectRatio="none">
+        <path d="M-60 58 Q80 22 200 54 T440 52 T680 60 T920 50 T1160 60 T1260 54 V90 H-60 Z" fill="#ff5a1f" stroke="#0b1533" strokeWidth="3" />
+      </svg>
+      <svg className="wave-l w3" viewBox="0 0 1200 90" preserveAspectRatio="none">
+        <path d="M-60 70 Q100 44 220 68 T460 66 T700 72 T940 64 T1180 72 T1260 68 V90 H-60 Z" fill="#1d4bff" stroke="#0b1533" strokeWidth="3" />
+      </svg>
+    </div>
+  );
+}
+
 export function Stamp({ kind, pressed, faded }: { kind: "grain" | "chaff"; pressed?: boolean; faded?: boolean }) {
   const grain = kind === "grain";
   return (
