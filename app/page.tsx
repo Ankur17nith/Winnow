@@ -64,8 +64,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
         <div className="foot-body">
           <p className="word">WINNOW</p>
           <p>
-            Built for the WeMakeDevs x Flagsmith hackathon. <a href="https://github.com/Ankur17nith/Winnow">Source</a> ·
-            Design language adapted from <a href="https://github.com/Prashant-thakur77/LifeLine">Lifeline</a> (MIT).
+            Built for the WeMakeDevs x Flagsmith hackathon. <a href="https://github.com/Ankur17nith/Winnow">Source</a>
           </p>
         </div>
       </footer>
