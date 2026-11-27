@@ -102,6 +102,7 @@ not be tested before deploy.
 | If you see | Do |
 |---|---|
 | `FAIL roast served (The roaster failed (4xx))` | The Groq key or model is wrong. Set `LLM_MODEL` in Vercel to a model your Groq console lists, redeploy |
+| `FAIL roast served (The roaster failed (404).)` | The LLM provider doesn't know the model name | Run `npm run models` (it lists what your Groq key can use), set `LLM_MODEL` to one of those ids in Vercel, redeploy, and run the smoke test again. The provider's own reason is in the deployment's Logs |
 | `FAIL roast served (Something went wrong. Try again.)` or `(500)` | Open the deployment's **Logs** in Vercel. `FLAGSMITH_ENVIRONMENT_KEY is not set` or `COOKIE_SECRET must be set` means a variable is missing: add it, redeploy |
 
 ## §5 — Register, then start the experiment (5 min)

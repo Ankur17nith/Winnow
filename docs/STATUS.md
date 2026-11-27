@@ -31,17 +31,21 @@ result exists. The steps that need accounts are in [human-runbook.md](human-runb
 
 ## What the first live run showed (27 Nov)
 
-`flagsmith login` and `flagsmith init` worked against the `winnow` project. The warehouse check in `npm run setup:flagsmith` was
-passed (it stops when there is none). The run then stopped after creating `roast_prompt` and its first variant, because the CLI
-wrapper misread a success message as an error. That is fixed and tested, and the pre-registration has been hashed and tagged
-(`prereg-exp1`). The flag, the other variant, the metrics and the experiment still have to be created by running the setup again.
+`flagsmith login` and `flagsmith init` worked against the `winnow` project, and the Development environment has a warehouse
+connection (`ok: 1 connection(s)`). The first run of `npm run setup:flagsmith` stopped after creating `roast_prompt` and its first
+variant, because the CLI wrapper misread a success message as an error; that is fixed and tested. A second run created the
+rest: both variants (`savage` 37805, `actionable` 37827), the metrics and the experiment, **id 1048, not started**. The
+pre-registration is hashed and tagged (`prereg-exp1`).
+
+The first `npm run smoke` against the deployed site passed 7 of 8 checks: the pages, the headers, the refused cross-site POST and the
+share card. It failed on the roast: `The roaster failed (404)`, which is the LLM provider not recognising the model name.
 
 ## What is NOT verified, because it needs an account or a person
 
 These are not known to be broken. They are unproven. In order of risk:
 
-1. **A warehouse connection.** Without one, experiments record nothing. `npm run setup:flagsmith` checks first and stops
-   with the docs link if there is none.
+1. **A warehouse connection.** Present on Development (the setup's check passed on 27 Nov). Keep it in mind if the setup moves to another
+   environment.
 2. **Events from a Vercel function.** The SDK buffers events; each route calls `flushEvents()` before it returns, but a
    frozen serverless function could still drop them. Runbook §4 is the test: one smoke run, then look for the exposure
    and the `thumbs_up` in the dashboard before starting the experiment.
@@ -60,11 +64,15 @@ These are not known to be broken. They are unproven. In order of risk:
    type definitions, not seen against a live experiment. If it is wrong the app falls back to the prompts in code and the
    roasts still work, but the flag's values would not be what is being tested. Check on the first smoke test: change a
    variant's value in Flagsmith and see the roast style change.
-7. **The AI judge against a real model.** `npm run judge` has run only in preview mode. Whether a real judge's replies parse as
+7. **An exposure is recorded even when the LLM call then fails.** The variant has to be picked, which records the exposure, before
+   the prompt can be sent. A failed call (a wrong model name, a rate limit) therefore leaves an exposure with no roast. It happens
+   equally in every arm, so it adds noise and not bias. Moving the exposure to after the call would need `trackExposureEvent`, and
+   whether that attributes the arm correctly is unverified.
+8. **The AI judge against a real model.** `npm run judge` has run only in preview mode. Whether a real judge's replies parse as
    a JSON object with three whole numbers, and how many come back unscorable, is unproven until a run with an `LLM_API_KEY`.
-8. **The default Groq model** (`llama-3.3-70b-versatile`). If roasts fail, set `LLM_MODEL` to one listed in the Groq
+9. **The default Groq model** (`llama-3.3-70b-versatile`). If roasts fail, set `LLM_MODEL` to one listed in the Groq
    console.
-9. **Traffic.** The track allows simulated traffic. Real visitors make a better story and are not guaranteed.
+10. **Traffic.** The track allows simulated traffic. Real visitors make a better story and are not guaranteed.
 
 ## Known limitations (by design, documented)
 
