@@ -1,6 +1,9 @@
 /**
- * Simulated visitors for REHEARSAL ONLY. Identities are prefixed "sim_" so they are identifiable, and results built
- * from them must be reported as simulated. Use a separate Flagsmith environment, never the real experiment.
+ * Simulated visitors. Identities are prefixed "sim_" so they are identifiable, and results built from them must be
+ * reported as simulated, with the number of simulated visitors. Per prereg/experiment-1-amendment-1.md, they may be
+ * added to the same experiment as real traffic when real traffic is too thin by the stopping rule; Flagsmith cannot
+ * tell them apart, and the decision rule never ships a prompt from a result marked simulated. Otherwise, use a
+ * separate Flagsmith environment.
  *
  *   FLAGSMITH_ENVIRONMENT_KEY=... npm run simulate -- [--users 300]
  */
