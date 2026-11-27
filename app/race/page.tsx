@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SieveRing } from "@/components/Art";
 import { DEFAULT_RULE, decide } from "@/lib/decision";
+import { explain } from "@/lib/explain";
+import { splitCheck } from "@/lib/srm";
 import { readStandings } from "@/lib/standings";
 
 export const metadata: Metadata = { title: "The race · Winnow", description: "Three prompts, one winner. Live win probabilities from Flagsmith Experimentation." };
@@ -8,10 +10,13 @@ export const dynamic = "force-dynamic";
 
 const COLOR: Record<string, string> = { control: "var(--sea)", savage: "var(--rescue)", actionable: "var(--mint)" };
 const KERNELS_MAX = 56;
+// The allocation the experiment asks for: control takes the remainder of an even three-way split.
+const SHARE: Record<string, number> = { control: 34, savage: 33, actionable: 33 };
 
 export default async function Race() {
   const standings = await readStandings();
   const decision = decide(standings);
+  const split = standings ? splitCheck(standings.variants, standings.variants.map((v) => SHARE[v.key] ?? 100 / standings.variants.length)) : null;
   const leader = standings ? [...standings.variants].sort((a, b) => b.winProbability - a.winProbability)[0] : null;
 
   return (
@@ -54,6 +59,20 @@ export default async function Race() {
             Source: Flagsmith Experimentation, updated {new Date(standings.updatedAt).toLocaleString("en")}.{" "}
             {standings.simulated ? <span className="sim-tag">SIMULATED REHEARSAL DATA</span> : "Real visitors."}
           </p>
+          <section className="card explain" aria-label="What this means">
+            <h2 className="eyebrow">What this means</h2>
+            <ul>{explain(standings).map((line) => <li key={line}>{line}</li>)}</ul>
+          </section>
+          {split && (
+            <p className={`split ${split.status}`}>
+              <b>Split check</b>{" "}
+              {"reason" in split
+                ? split.reason
+                : `Expected ${split.expected.map((e) => Math.round(e)).join(" / ")} visitors, saw ${split.observed.join(" / ")} (${split.keys.join(", ")}). ${
+                    split.status === "ok" ? "The arms were filled in the proportions asked for." : "The arms are not balanced as designed: do not trust these results until the cause is found."
+                  }`}
+            </p>
+          )}
         </>
       ) : (
         <p className="card empty">No results yet. The race starts once the experiment is running and the first votes are in.</p>
