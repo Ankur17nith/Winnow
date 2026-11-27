@@ -7,7 +7,7 @@ yet, so no result exists. The steps that need accounts are in [human-runbook.md]
 
 | Area | Evidence |
 |---|---|
-| Identity, roast tokens, limits, request guards, decision rule, results adapter, `winnow-kit` | 13 unit tests, `npm test`, all passing on 26 Nov |
+| Identity, roast tokens, limits, request guards, decision rule, results adapter, `winnow-kit` | 17 unit tests, `npm test`, all passing on 27 Nov |
 | Types and production build | `npm run lint` (tsc) and `npm run build` clean; the same steps run in [CI](../.github/workflows/ci.yml) |
 | The whole visitor flow: paste, roast, vote, reveal, copy, share card | Driven in headless Chromium against a production build in preview mode, at 1280 and 390 px wide; no console errors |
 | Security headers and the content-security-policy | `curl -I` on a production build shows CSP, `X-Frame-Options: DENY`, `nosniff`, referrer policy; the page renders under them with no CSP violations |
@@ -15,6 +15,7 @@ yet, so no result exists. The steps that need accounts are in [human-runbook.md]
 | `npm run smoke` | 9 of 9 checks pass against a local production build (preview mode) |
 | `npm run ship` | `--dry-run` prints the right `flagsmith flag update --weight` command; typing anything but the winner's name cancels; simulated data never ships (unit test) |
 | `npm run setup:flagsmith` | `--dry-run` prints every CLI call and JSON body; the bodies match the format in Flagsmith's own coding-agent setup prompt |
+| Remote prompts, split check, plain-English explanation | Unit-tested (`resolvePrompt`, `splitCheck`, `explain`); the race page rendered in Chromium with a simulated snapshot showing the explanation and a passing split check |
 | Flagsmith SDK calls | `getExperimentFlag`, `trackEvent`, `flushEvents`, `close` and `Flag.variant` read from `@flagsmith/nodejs` 9.4.0's type definitions |
 | Flagsmith CLI commands | Every command the scripts run was checked against the CLI's own `--help` (v2, installed from npm in the sandbox) |
 

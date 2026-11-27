@@ -2,6 +2,23 @@
 
 Dates are UTC. Versions are this repository's own; they are not published anywhere.
 
+## v0.7.0 — 27 Nov 2026 (remote prompts and results that check themselves)
+
+Added
+- **Remote config.** The prompt text is now the flag's variant values. `npm run setup:flagsmith` writes them, and the app
+  uses a variant's value as the system prompt, so a prompt can be edited or a new arm added in Flagsmith with no deploy.
+  The safety rules are appended by the code and are not part of the flag; an unusable value (too short, too long, not a
+  string, or just a variant name) falls back to the copy in code.
+- **A split check** (`lib/srm.ts`): a sample-ratio-mismatch test on the exposures, shown on `/race`. A broken split quietly
+  invalidates an A/B test, so it is flagged before any result is believed.
+- **A plain-English explanation** (`lib/explain.ts`) of the results on `/race`: who leads, by how much, the sample, what the
+  pre-set rule says, and the caveats. No model; every sentence comes from the numbers.
+- 4 more tests (17 in total). A section in `docs/submission.md` listing exactly which Flagsmith parts are used.
+
+Changed
+- `pickVariant` returns the variant key and its value. `docs/safety.md` has two new controls and one new known gap: whoever
+  can edit the flag controls the prompt's style.
+
 ## v0.6.0 — 26 Nov 2026 (demo video and deck)
 
 Added

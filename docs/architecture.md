@@ -30,7 +30,8 @@ POST /api/roast {text | repoUrl}
   4. input             paste, or README fetched from api.github.com         lib/limits.ts
   5. caps              30 per IP, 5 per visitor, per day                    lib/limits.ts
   6. pickVariant       getExperimentFlag → exposure recorded HERE           lib/flagsmith.ts
-  7. promptFor         variant key → system prompt (unknown → control)      lib/prompts.ts
+  7. resolvePrompt     the variant's value is the prompt (remote config); the code appends the safety
+                       rules; an unusable value falls back to the copy in code           lib/prompts.ts
   8. complete          Groq, README inside <readme> tags, 20 s timeout      lib/llm.ts
   9. events            roast_requested; roast_again if winnow_n ≥ 1         lib/engagement.ts
  10. flushEvents       before returning, because a serverless function can freeze

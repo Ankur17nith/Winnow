@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Ankur17nith/Winnow/actions/workflows/ci.yml/badge.svg)](https://github.com/Ankur17nith/Winnow/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-13%20passing-brightgreen)](#tests-and-checks)
+[![Tests](https://img.shields.io/badge/tests-17%20passing-brightgreen)](#tests-and-checks)
 [![Flagsmith](https://img.shields.io/badge/built%20with-Flagsmith%20Experimentation-7b5cff)](https://docs.flagsmith.com/experimentation)
 [![Hackathon](https://img.shields.io/badge/WeMakeDevs%20x%20Flagsmith-Track%2001%3A%20Test%20Something%20Real-black)](https://www.wemakedevs.org/hackathons/flagsmith)
 
@@ -29,7 +29,7 @@ LLM (Groq) writes the roasts. Nothing else is involved: no database, no accounts
 
 | At a glance | Value | Source |
 | --- | --- | --- |
-| Automated tests, all passing | 13 | `npm test` |
+| Automated tests, all passing | 17 | `npm test` |
 | Prompt variants under test | 3 (`control`, `savage`, `actionable`) | [lib/prompts.ts](lib/prompts.ts) |
 | Metrics | `thumbs_up` (primary), `roast_again` (fires early in a visit), `roast_requested` (sanity check) | [docs/experiment-design.md](docs/experiment-design.md) |
 | Decision rule, fixed in advance | win probability at least 90% and 30 visitors per arm | [lib/decision.ts](lib/decision.ts) |
@@ -62,7 +62,7 @@ No keys needed.
 
 ```bash
 npm install
-npm test                       # 13 tests
+npm test                       # 17 tests
 npm run lint                   # type check
 WINNOW_PREVIEW=1 COOKIE_SECRET=any-long-secret-here npm run dev
 ```
@@ -79,6 +79,11 @@ per arm, then run `npm run ship -- --dry-run`. It prints the exact `flagsmith fl
 
 ## What's new here
 
+- **Prompts are Flagsmith remote config.** The prompt text lives in the flag's variant values, so a prompt can be edited, or
+  a fourth one added, in Flagsmith with no deploy. The safety rules are appended by the code and are not part of the flag,
+  so a bad value can change the style of a roast but never remove them.
+- **The results check themselves.** `/race` runs a sample-ratio-mismatch test on the exposures (did the arms fill in the
+  proportions asked for?) and explains the numbers in plain English, caveats included.
 - **Reveal after you vote.** You see which prompt you tasted and the live standings only after the vote is cast, so voting
   is a game and the vote is never influenced.
 - **The flag ships its own winner.** A script applies a decision rule fixed before looking at results, shows the exact
@@ -135,7 +140,7 @@ Statistical caveats (peeking, three arms, self-selected voters) are written down
 
 ## Why it needs Flagsmith
 
-- The multivariate flag **is** the product: prompts live in flag variants, not in a code branch.
+- The multivariate flag **is** the product: the prompts themselves are the variants' values (remote config), not a code branch.
 - Exposure and conversion events go through the Flagsmith SDK into Experimentation, which computes win probability.
 - `roasts_enabled` is a second flag used as a kill switch to protect the free LLM quota.
 - Shipping the winner is a flag change (`flag update --weight`), not a deploy.
@@ -170,8 +175,9 @@ Full list, with the test behind each control, in [docs/safety.md](docs/safety.md
 
 ## Tests and checks
 
-- `npm test`: 13 tests covering identity signing and tamper rejection, token expiry, prompt fallback, the URL allow-list,
-  length and per-IP caps, request guards, the decision rule, the results adapter and `winnow-kit`.
+- `npm test`: 17 tests covering identity signing and tamper rejection, token expiry, prompt fallback and remote prompts, the
+  URL allow-list, length and per-IP caps, request guards, the decision rule, the results adapter, the split check, the
+  plain-English explanation and `winnow-kit`.
 - `npm run lint` and `npm run build` run in [CI](.github/workflows/ci.yml) on every push.
 - `npm run smoke` against a production build: 9 of 9.
 - Manual, done: the full roast, vote and reveal flow in a real browser (desktop and phone width), the production build's

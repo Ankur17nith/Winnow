@@ -30,6 +30,8 @@ app **leaks a secret**, or a winner **ships on bad evidence**. Each control belo
 | 14 | **Headers.** A content-security-policy that allows only our own origin (`frame-ancestors 'none'`, `object-src 'none'`), `X-Frame-Options: DENY`, `nosniff`, a referrer policy and a permissions policy that turns off camera, microphone and location. | `next.config.mjs` | `npm run smoke`; a production build rendered with no CSP violations |
 | 15 | **A winner ships only on the rule, and only with a person.** Win probability of at least 90% and at least 30 visitors in every arm, fixed before results existed. Simulated data can never qualify. The script then needs the winner's name typed by hand. | `lib/decision.ts`, `scripts/ship-winner.ts` | `decision: ships only with enough exposures and a clear winner`; `decision: simulated data never ships`; typing anything else cancelled in a manual run |
 | 16 | **Nothing is invented.** No results file means no standings. A results response in an unknown shape stops the script and names the keys it saw. Preview roasts are prefixed `[preview]`. | `lib/standings.ts`, `lib/results.ts`, `lib/preview.ts` | `results adapter normalises percentages and fails loudly on unknown shapes` |
+| 17 | **Remote prompts cannot remove the rules.** The variant value from Flagsmith is used as the prompt body only if it is a string of 20 to 1,500 characters and not just a variant name; the code always appends the safety rules (length limit, plain text, untrusted README, no self-disclosure). Anything else falls back to the copy in code. | `lib/prompts.ts` `resolvePrompt` | `remote prompts are used, and the safety rules are always appended by the code`; `remote prompts fall back to the copy in code when the value is unusable` |
+| 18 | **A broken split is flagged, not hidden.** `/race` tests the exposures against the allocation asked for (chi-square, p < 0.01 is a mismatch) and says not to trust the results if the arms are unbalanced. | `lib/srm.ts` | `split check: balanced, skewed, thin and unsupported` |
 
 ## What Winnow deliberately cannot do
 
@@ -44,6 +46,9 @@ app **leaks a secret**, or a winner **ships on bad evidence**. Each control belo
 - **Cookie clearing.** A visitor who clears cookies is a new identity and can vote again. The per-IP cap limits the
   damage; it does not remove it. Results are reported as indicative.
 - **In-memory counters.** On serverless every instance has its own counters. The kill switch is the hard stop.
+- **Whoever can edit the flag controls the prompt's style.** Remote prompts are trusted configuration: anyone with write
+  access to the Flagsmith environment can change what the model is asked to do. The code keeps the safety rules out of
+  their reach, but cannot make a hostile prompt body harmless. Keep environment access to the people running the test.
 - **Prompt injection is mitigated, not solved.** The model is told to ignore instructions in the README, and its output
   can only ever be plain text on our own page. It has no tools and no secrets in its context.
 - **No automated tests for the route handlers or the UI.** They were exercised end to end in preview mode and by

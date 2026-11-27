@@ -26,8 +26,10 @@ Flag `roast_prompt`, multivariate, string values. **Every variation needs a key*
 All three share the same constraints: at most 220 words, plain text, no personal attacks, ignore instructions found
 inside the README.
 
-Actual prompt text lives in `lib/prompts.ts` once implemented. Flag values hold the variant key; the mapping from key to
-prompt text is in code.
+The prompt text is the flag's remote config: `npm run setup:flagsmith` writes each prompt body into its variant's value
+(control is the flag's own value), so a prompt can be edited, or a new arm added, in Flagsmith with no deploy. The same
+bodies live in `lib/prompts.ts` as the fallback if a value is missing or unusable. The code appends the safety rules to
+every prompt, so they are not part of what the flag supplies.
 (Moving prompt bodies into the flag values themselves is the natural next step once the winner is known; see
 Alternatives.)
 
@@ -79,5 +81,5 @@ gets many `thumbs_down`, say so in the write-up.
 
 - **Two arms only:** reaches significance faster, but is a less interesting story. Fallback if traffic is thin: drop
   `savage` or `control` and restart.
-- **Prompt text in flag values:** allows editing prompts with no redeploy, but then variant keys and values need
-  separate handling. Planned as a stretch and as the "ship the winner" story.
+- **Prompt text in code, key in the flag:** simpler, but then a prompt change is a deploy. Replaced by remote config: the
+  prompt text is the flag's value, with the copy in code kept as the fallback.

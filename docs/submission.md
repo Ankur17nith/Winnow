@@ -43,6 +43,24 @@ reported separately).
 
 Short window and small sample; self-selected voters; cookies can be cleared; three arms need more traffic than two.
 
+## Which parts of Flagsmith we used
+
+The submission form asks this. What is true, and where to see it:
+
+| Part | Used? | Where |
+|---|---|---|
+| Feature flags | Yes | `roast_prompt` (multivariate) and `roasts_enabled` (kill switch), read server-side with the Node SDK |
+| Experimentation (A/B tests) | Yes | One experiment on `roast_prompt` with three metrics; exposures from `getExperimentFlag`, conversions from `trackEvent` |
+| Remote config | Yes | The prompt text is each variant's value; the app uses it as the system prompt, with the safety rules appended in code |
+| Flagsmith CLI | Yes | `npm run setup:flagsmith`, `results` and `ship` all run through it |
+| Flagsmith API | Yes | The setup and results scripts call the Admin API with `flagsmith api` (metrics, experiment, results) |
+| Flagsmith Cloud | Yes | The `winnow` project on Flagsmith Cloud |
+| Segments | No | Not used. Do not tick it |
+| Flagsmith MCP server | No | Not used: Flagsmith's own setup prompt says it cannot start experiments. Do not tick it |
+| Self-hosted Flagsmith | No | Not used. Do not tick it |
+
+Tick only what the table says "Yes" to, and only after the experiment has actually been created and run.
+
 ## How Flagsmith is used
 
 The multivariate flag holds the prompts. The Node SDK's `getExperimentFlag` records exposures and `trackEvent` records
