@@ -295,3 +295,41 @@ test("cli wrapper: a success message on stderr is not a failure, an error line o
   assert.equal(looksFailed(1, '{"id":1}', ""), true);
   assert.equal(looksFailed(null, "", "", new Error("spawn flagsmith ENOENT")), true);
 });
+
+const { pickChatModel } = await import("../lib/llm.ts");
+test("llm: a chat model is picked from the provider's list, small and fast first", () => {
+  assert.equal(pickChatModel(["whisper-large-v3", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "meta-llama/llama-guard-4-12b", "playai-tts", "openai/gpt-oss-20b"]), "llama-3.1-8b-instant");
+  assert.equal(pickChatModel(["llama-3.3-70b-versatile", "mixtral-8x7b", "zeta-versatile"]), "llama-3.3-70b-versatile");
+  assert.equal(pickChatModel(["b-model", "a-model"]), "a-model");
+  assert.equal(pickChatModel(["whisper-large-v3", "llama-guard-3-8b", "playai-tts"]), null);
+  assert.equal(pickChatModel([]), null);
+});
+
+const { renderResults, formText } = await import("../lib/report.ts");
+test("report: the results file and the form text come from the numbers, and say when the traffic was simulated", () => {
+  const snap = (simulated: boolean) => ({
+    updatedAt: "2026-11-28T09:00:00Z",
+    simulated,
+    srmPValue: 0.42,
+    variants: [
+      { key: "control", exposures: 100, conversions: 30, winProbability: null },
+      { key: "savage", exposures: 99, conversions: 36, winProbability: 0.8, lift: 0.2, ciLow: -0.1, ciHigh: 0.5 },
+      { key: "actionable", exposures: 101, conversions: 50, winProbability: 0.99, lift: 0.65, ciLow: 0.2, ciHigh: 1.1 },
+    ],
+  });
+  const md = renderResults(snap(true));
+  assert.match(md, /include simulated visitors/);
+  assert.match(md, /\| actionable \| 101 \| 50 \| 50% \| 99% \| \+65% \(\+20% to \+110%\) \|/);
+  assert.match(md, /\| control \| 100 \| 30 \| 30% \| baseline \| baseline \|/);
+  assert.match(md, /Flagsmith's own sample-ratio check reports p = 0.420/);
+  assert.match(md, /Simulated data never ships/);
+  assert.doesNotMatch(renderResults(snap(false)), /include simulated visitors/);
+  const form = formText(snap(true));
+  assert.match(form, /simulated visitors: 300 visitors in all/);
+  assert.match(form, /actionable: 50 of 101 liked \(50%\), win probability 99%/);
+  assert.match(form, /nothing ships: Results are simulated/);
+  const real = formText(snap(false));
+  assert.match(real, /300 visitors took part/);
+  assert.match(real, /actionable qualifies to ship/);
+  assert.doesNotMatch(real, /simulated/);
+});
