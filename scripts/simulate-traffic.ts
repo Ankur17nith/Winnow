@@ -1,19 +1,27 @@
 /**
- * Simulated visitors. Identities are prefixed "sim_" so they are identifiable, and results built from them must be
- * reported as simulated, with the number of simulated visitors. Per prereg/experiment-1-amendment-1.md, they may be
- * added to the same experiment as real traffic when real traffic is too thin by the stopping rule; Flagsmith cannot
- * tell them apart, and the decision rule never ships a prompt from a result marked simulated. Otherwise, use a
- * separate Flagsmith environment.
+ * Simulated visitors. They are named `sim_<n>`, they talk to Flagsmith directly through the SDK (never to the website, the LLM or
+ * the site's rate limits), and each one gets a variant and may "like" the roast or come back for a second one.
  *
- *   FLAGSMITH_ENVIRONMENT_KEY=... npm run simulate -- [--users 300]
+ * Whether a simulated visitor likes a roast is drawn from rates assumed in this file, not measured. A result built on them shows
+ * that the pipeline works, from exposure to event to Flagsmith's analysis. It says nothing about which prompt people prefer, and
+ * anything that shows it must say the traffic was simulated. `prereg/experiment-1-amendment-1.md` records that these visitors are
+ * added to the same experiment as the real ones, so the results are mixed.
+ *
+ * The experiment must be running, or the exposures are not counted. The identities are fixed (`sim_0` to `sim_<users-1>`), so a
+ * second run adds no new visitors. Put the server-side key in the terminal without echoing it:
+ *
+ *   read -rs FLAGSMITH_ENVIRONMENT_KEY && export FLAGSMITH_ENVIRONMENT_KEY
+ *   npm run simulate -- --users 300
+ *
+ * Then `npm run finalize -- --environment <key> --experiment <id> --simulated` pulls the results and publishes them.
  */
 import { EVENT_AGAIN, EVENT_REQUESTED, flushEvents, getFlagsmith, pickVariant, trackEvent, trackVote } from "../lib/flagsmith.ts";
 import { arg } from "./cli.ts";
 
 const users = Number(arg("users") ?? 300);
-// Made-up "true" grain rates per variant, so the rehearsal has something to find.
+// Assumed chance that a visitor likes the roast, per variant. These are inputs to the simulation, not findings.
 const TRUE_RATE: Record<string, number> = { control: 0.32, savage: 0.38, actionable: 0.5 };
-// Made-up chance that a visitor comes back for a second roast.
+// Assumed chance that a visitor comes back for a second roast.
 const AGAIN_RATE: Record<string, number> = { control: 0.15, savage: 0.25, actionable: 0.22 };
 
 let seed = 42;
