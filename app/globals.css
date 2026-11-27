@@ -124,7 +124,7 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 .reveal { margin-top: 16px; padding: 14px 16px; background: var(--paper-2); border: 2px solid var(--ink); border-radius: 8px; }
 .reveal .variant { margin: 6px 0 10px; font: 800 34px/1 var(--font-archivo); font-stretch: 70%; text-transform: uppercase; color: var(--rescue-ink); }
 .reveal ul { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
-.reveal li { display: grid; grid-template-columns: 96px 1fr 44px; gap: 10px; align-items: center; font: 500 13px var(--font-plex), monospace; color: var(--ink); }
+.reveal li { display: grid; grid-template-columns: 96px 1fr 44px; gap: 4px 10px; align-items: center; font: 500 13px var(--font-plex), monospace; color: var(--ink); }
 .reveal li.you span:first-child { font-weight: 700; }
 .reveal .bar { height: 12px; border: 2px solid var(--ink); border-radius: 6px; background: var(--card); overflow: hidden; }
 .reveal .bar i { display: block; height: 100%; background: var(--grain); }
@@ -154,3 +154,5 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 .split { margin: 0 0 40px; padding: 12px 16px; border: 2px solid var(--ink); border-radius: 8px; background: var(--card); font-size: 15px; color: var(--ink-2) }
 .split b { font: 600 12px var(--font-plex), monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); margin-right: 8px }
 .split.ok { border-left: 8px solid var(--mint) } .split.mismatch { border-left: 8px solid #e5243b; background: #fff0f1 } .split.insufficient, .split.unsupported { border-left: 8px solid var(--chaff) }
+
+.reveal li em { grid-column: 2 / 4; font: 400 12px var(--font-plex), monospace; color: var(--muted); font-style: normal; margin-top: -2px }

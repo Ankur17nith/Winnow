@@ -4,7 +4,7 @@ import Roaster from "@/components/Roaster";
 const STEPS = [
   ["01", "A flag deals a basket", "Each visitor silently gets one of three prompts from a multivariate Flagsmith flag. You never see which."],
   ["02", "You decide: grain or chaff", "One tap says whether the roast was worth keeping. That single event is the experiment's success metric."],
-  ["03", "Flagsmith names the winner", "A Bayesian engine turns votes into a win probability per prompt. The winner ships through the same flag."],
+  ["03", "Flagsmith names the winner", "A Bayesian engine turns votes into each prompt's chance of beating control. The winner ships through the same flag."],
 ];
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ repo?: string }> }) {

@@ -5,7 +5,7 @@ import { explain } from "@/lib/explain";
 import { splitCheck } from "@/lib/srm";
 import { readStandings } from "@/lib/standings";
 
-export const metadata: Metadata = { title: "The race · Winnow", description: "Three prompts, one winner. Live win probabilities from Flagsmith Experimentation." };
+export const metadata: Metadata = { title: "The race · Winnow", description: "Three prompts, one control. Flagsmith Experimentation's chance that each beats it." };
 export const dynamic = "force-dynamic";
 
 const COLOR: Record<string, string> = { control: "var(--sea)", savage: "var(--rescue)", actionable: "var(--mint)" };
@@ -17,7 +17,9 @@ export default async function Race() {
   const standings = await readStandings();
   const decision = decide(standings);
   const split = standings ? splitCheck(standings.variants, standings.variants.map((v) => SHARE[v.key] ?? 100 / standings.variants.length)) : null;
-  const leader = standings ? [...standings.variants].sort((a, b) => b.winProbability - a.winProbability)[0] : null;
+  const leader = standings
+    ? [...standings.variants].filter((v) => v.winProbability !== null).sort((a, b) => (b.winProbability as number) - (a.winProbability as number))[0] ?? null
+    : null;
 
   return (
     <main>
@@ -30,16 +32,17 @@ export default async function Race() {
         <p className="eyebrow">Live standings</p>
         <h1 aria-label="The race"><span className="line"><span>The race</span></span></h1>
         <p className="lede">
-          Do developers want AI feedback kind, brutal or actionable? Each pile is a prompt. The taller the pile, the more likely
-          that prompt is the best one, according to Flagsmith&apos;s Bayesian engine.
+          Do developers want AI feedback kind, brutal or actionable? Each pile is a prompt, as tall as the share of visitors who liked
+          it. Under each one is Flagsmith&apos;s chance that it beats the friendly control, from its Bayesian engine.
         </p>
       </section>
 
       {standings ? (
         <>
-          <section className="piles" aria-label="Win probability per prompt">
+          <section className="piles" aria-label="Like rate and chance to beat control, per prompt">
             {standings.variants.map((v) => {
-              const n = Math.max(1, Math.round(v.winProbability * KERNELS_MAX));
+              const liked = v.exposures > 0 ? v.conversions / v.exposures : 0;
+              const n = Math.max(1, Math.round(liked * KERNELS_MAX));
               const lead = leader?.key === v.key;
               return (
                 <figure key={v.key} className={`pile${lead ? " lead" : ""}`} style={{ ["--c" as string]: COLOR[v.key] ?? "var(--ink)" }}>
@@ -47,9 +50,10 @@ export default async function Race() {
                     {Array.from({ length: n }, (_, i) => <i key={i} />)}
                   </div>
                   <figcaption>
-                    <b className="pct">{Math.round(v.winProbability * 100)}%</b>
+                    <b className="pct">{v.winProbability === null ? "baseline" : `${Math.round(v.winProbability * 100)}%`}</b>
                     <span className="vname">{v.key}</span>
-                    <span className="meta">{v.conversions} grain / {v.exposures} tasted</span>
+                    <span className="meta">{v.winProbability === null ? "the prompt the others are compared with" : "chance to beat control"}</span>
+                    <span className="meta">{v.conversions} grain / {v.exposures} tasted · {Math.round(liked * 100)}% liked</span>
                   </figcaption>
                 </figure>
               );
@@ -80,7 +84,7 @@ export default async function Race() {
 
       <section className="band" aria-label="Decision rule">
         <p>
-          <b>Decision rule, fixed in advance:</b> ship a prompt only when its win probability is at least{" "}
+          <b>Decision rule, fixed in advance:</b> ship a prompt only when its chance of beating control is at least{" "}
           {Math.round(DEFAULT_RULE.minWinProbability * 100)}% and every arm has at least {DEFAULT_RULE.minExposuresPerArm} visitors.{" "}
           Right now: <b>{decision.action === "ship" ? `${decision.winner} qualifies` : "keep waiting"}</b>. A human approves any rollout.
         </p>

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Basket, Stamp } from "./Art";
 
-type Standing = { key: string; exposures: number; conversions: number; winProbability: number };
+type Standing = { key: string; exposures: number; conversions: number; winProbability: number | null };
 type Reveal = { variant: string; standings: { updatedAt: string; simulated: boolean; variants: Standing[] } | null };
 
 type Phase = "idle" | "loading" | "done";
@@ -130,19 +130,23 @@ export default function Roaster({ initialRepo }: { initialRepo?: string }) {
                 <p className="variant">{reveal.variant}</p>
                 {reveal.standings ? (
                   <ul>
-                    {reveal.standings.variants.map((v) => (
-                      <li key={v.key} className={v.key === reveal.variant ? "you" : ""}>
-                        <span>{v.key}</span>
-                        <span className="bar"><i style={{ width: `${Math.round(v.winProbability * 100)}%` }} /></span>
-                        <b>{Math.round(v.winProbability * 100)}%</b>
-                      </li>
-                    ))}
+                    {reveal.standings.variants.map((v) => {
+                      const liked = v.exposures > 0 ? Math.round((v.conversions / v.exposures) * 100) : 0;
+                      return (
+                        <li key={v.key} className={v.key === reveal.variant ? "you" : ""}>
+                          <span>{v.key}</span>
+                          <span className="bar"><i style={{ width: `${liked}%` }} /></span>
+                          <b>{liked}%</b>
+                          <em>{v.winProbability === null ? "baseline" : `${Math.round(v.winProbability * 100)}% to beat control`}</em>
+                        </li>
+                      );
+                    })}
                   </ul>
                 ) : (
                   <p className="note">Standings appear once the experiment has results.</p>
                 )}
                 {reveal.standings && (
-                  <p className="note">Win probability from Flagsmith, updated {new Date(reveal.standings.updatedAt).toLocaleString("en")}{reveal.standings.simulated ? " (simulated)" : ""}.</p>
+                  <p className="note">Share of visitors who liked each prompt, and Flagsmith's chance that it beats control. Updated {new Date(reveal.standings.updatedAt).toLocaleString("en")}{reveal.standings.simulated ? " (simulated)" : ""}.</p>
                 )}
               </div>
             )}
