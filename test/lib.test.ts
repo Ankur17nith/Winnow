@@ -241,3 +241,45 @@ test("pre-registration: the hypothesis is the marked block, and hashes parse bac
   assert.equal(h.length, 64);
   assert.deepEqual(parseHashes(`${h}  prereg/experiment-1.md\nnot a hash line\n`), { "prereg/experiment-1.md": h });
 });
+
+const { parseJudgeScore, aggregate, agreement, buildJudgeInput } = await import("../lib/judge.ts");
+test("judge: scores parse only when all three criteria are whole numbers from 1 to 5", () => {
+  assert.deepEqual(parseJudgeScore('{"specific":3,"useful":4,"tone":5}'), { specific: 3, useful: 4, tone: 5 });
+  assert.deepEqual(parseJudgeScore('Sure! Here you go: {"specific":1,"useful":2,"tone":3} Hope that helps.'), { specific: 1, useful: 2, tone: 3 });
+  for (const bad of ["no json", '{"specific":3,"useful":4}', '{"specific":0,"useful":4,"tone":5}', '{"specific":6,"useful":4,"tone":5}', '{"specific":3.5,"useful":4,"tone":5}', '{"specific":"3","useful":4,"tone":5}', "{not json}"]) {
+    assert.equal(parseJudgeScore(bad), null, bad);
+  }
+  assert.match(buildJudgeInput("R", "X"), /<readme>\nR\n<\/readme>\n<roast>\nX\n<\/roast>/);
+});
+
+test("judge: aggregate averages per variant and counts unscorable samples as failed, never as zero", () => {
+  const sc = (a: number, b: number, c: number) => ({ specific: a, useful: b, tone: c });
+  const rows = aggregate(
+    [
+      { variant: "control", readme: "a", scores: sc(2, 2, 4) },
+      { variant: "control", readme: "b", scores: null },
+      { variant: "actionable", readme: "a", scores: sc(4, 5, 3) },
+      { variant: "actionable", readme: "b", scores: sc(5, 5, 3) },
+    ],
+    ["control", "actionable", "savage"],
+  );
+  assert.deepEqual(rows[0], { variant: "control", n: 1, failed: 1, overall: 8 / 3, specific: 2, useful: 2, tone: 4 });
+  assert.equal(rows[1].n, 2);
+  assert.equal(rows[1].useful, 5);
+  assert.equal(rows[2].n, 0);
+  assert.equal(rows[2].overall, null);
+});
+
+test("judge: agreement compares the judge's favourite with the visitors' best treatment, and says it is only one comparison", () => {
+  const jr = (over: Record<string, number | null>) => ({ generatedAt: "t", generatorModel: "m", judgeModel: "m", preview: false, readmes: 6, variants: Object.entries(over).map(([variant, overall]) => ({ variant, n: 6, failed: 0, overall })) });
+  const st = (a: number, s: number, sim = false) => ({ updatedAt: "t", simulated: sim, variants: [{ key: "control", exposures: 40, conversions: 10, winProbability: null }, { key: "savage", exposures: 40, conversions: 12, winProbability: s }, { key: "actionable", exposures: 40, conversions: 20, winProbability: a }] });
+  assert.equal(agreement(jr({ control: 3, savage: 3.5, actionable: 4.2 }), st(0.9, 0.3)).status, "match");
+  const d = agreement(jr({ control: 3, savage: 4.4, actionable: 4.2 }), st(0.9, 0.3));
+  assert.equal(d.status, "differ");
+  assert.match(d.text, /judge preferred savage; visitors preferred actionable/);
+  assert.match(d.text, /one comparison/);
+  assert.match(agreement(jr({ control: 3, savage: 4, actionable: 5 }), st(0.9, 0.3, true)).text, /simulated/);
+  assert.equal(agreement(null, st(0.9, 0.3)).status, "insufficient");
+  assert.equal(agreement(jr({ control: 3, savage: 4, actionable: 5 }), null).status, "insufficient");
+  assert.equal(agreement(jr({ control: null, savage: null, actionable: 5 }), st(0.9, 0.3)).status, "insufficient");
+});
