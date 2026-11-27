@@ -6,7 +6,7 @@ Dates are UTC. Versions are this repository's own; they are not published anywhe
 
 Added
 - **The live floor in the hero**: three baskets with piles as tall as each prompt's like rate and, under each treatment, its chance of
-  beating control, from the same snapshot as `/race`; an honest empty state with no results. On narrow screens it moves below the input.
+  beating control, from the same snapshot as `/race`; an empty state when there are no results. On narrow screens it moves below the input.
 - **Your vote lands**: a kernel flies from the stamp to the prompt you tasted. The roast wipes in. A strip of paper waves sits under
   the hero. All of it respects reduced motion and moves by transform and opacity only.
 
@@ -15,14 +15,14 @@ Changed
   its first button instead of wrapping onto the logo.
 - The README's home-page image and the deck were rebuilt from the new page, in its empty state (what a deployment shows today).
 
-## v0.9.0 — 27 Nov 2026 (an AI judge, kept honest)
+## v0.9.0 — 27 Nov 2026 (an AI judge)
 
 Added
 - **The AI-judge bench** (`npm run judge`, `lib/judge.ts`, `bench/readmes/`): an LLM scores each prompt's roast of six sample
   READMEs from 1 to 5 on being specific, useful and civil. `/race` shows the scores, labelled as not Flagsmith data, and, once
   visitors' results exist, whether the judge's favourite matched theirs, with the caveat that three prompts make one
-  comparison. Unscorable replies are counted as unscorable, never as zero. `JUDGE_MODEL` judges with a different model.
-- Preview mode produces clearly labelled stand-in numbers so the layout can be seen without a key. 3 more tests (22 in total).
+  comparison. A reply the judge gives that can't be scored is counted as unscorable and left out of the averages. `JUDGE_MODEL` judges with a different model.
+- Preview mode writes labelled stand-in numbers, so the layout can be seen without a key. 3 more tests (22 in total).
 - `docs/judge.md`: what it is, why it is worth having, and what it cannot tell you.
 
 ## v0.8.0 — 27 Nov 2026 (results read the way Flagsmith reports them, and a pre-registration)
@@ -65,7 +65,7 @@ Added
 - **A demo video pipeline** (`video/`): a script, an ElevenLabs voiceover builder with clips cached by content, a frame
   renderer that films the real app in preview mode, and an assembly step that mixes low music under the voice and
   normalises loudness. Two voices alternate, an American English one and an Indian English one.
-- **Scenes built from real evidence**: a diagram of where the vote goes, lit node by node as it is spoken; the app's
+- **Scenes built from the app's own output**: a diagram of where the vote goes, lit node by node as it is spoken; the app's
   actual responses to a forged vote, a vote with no cookie and a cross-site request (`video/evidence.sh`); a "proven, and
   not yet" slide; repository counts read from git when the video is rendered.
 - **A pitch deck** (`presentation/deck.cjs`), built from the app's own stylesheet and printed to a 16:9 PDF.
@@ -115,7 +115,7 @@ Added
 - **The decision rule** (`lib/decision.ts`): 90% win probability and 30 visitors in every arm, fixed before any result
   existed. Simulated data can never qualify.
 - **`npm run ship`**: applies the rule and changes the flag only after a person types the winner's name.
-- **`npm run results`**: writes `data/results.json` from Flagsmith; fails loudly, naming the keys it saw, if the response
+- **`npm run results`**: writes `data/results.json` from Flagsmith; stops with an error naming the keys it saw if the response
   is shaped differently from what `lib/results.ts` expects.
 - **`npm run simulate`**: rehearsal visitors named `sim_*`.
 - **`winnow-kit`**: the pattern as a library, with its own tests and README.

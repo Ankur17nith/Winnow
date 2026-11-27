@@ -25,7 +25,7 @@ await winnow.flush();                                   // before a serverless f
 2. Create a metric whose event name matches what you track (case-sensitive).
 3. Create and start an experiment on the flag. See `docs/flagsmith-setup.md` for the CLI commands.
 
-## Rules that keep the test honest
+## Rules for a valid test
 
 - Use the **same identifier** for `pick` and `track`. Flagsmith joins events per identity.
 - Call `pick` only when the prompt is actually used.

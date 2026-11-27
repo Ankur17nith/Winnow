@@ -49,7 +49,7 @@ broke, surprised you, or changed a decision, and say what the code does about it
 
 - **The track's own advice: pick a metric that fires early in a visit.** `thumbs_up` needs a paste, an LLM call and a
   vote. The obvious early event, "roast requested", turned out to be useless as a comparison: the exposure is recorded at
-  the moment of the request, so it is near 100% in every arm by construction. It is kept as a sanity check, and
+  the moment of the request, so it is near 100% in every arm whatever the prompt. It is kept as a sanity check, and
   `roast_again` (the same visitor asks for a second roast) was added as the early signal that depends on the first roast.
 - **The track allows simulated traffic.** Earlier docs treated real visitors as essential. They are better, not required;
   simulated runs go in a separate environment and are labelled everywhere they appear.
@@ -85,7 +85,7 @@ broke, surprised you, or changed a decision, and say what the code does about it
   paper sheets behind the hero headline. In the screenshot they were a blunt block with hard edges that lowered the text's contrast.
   Replaced by a strip *under* the text. Review the actual pixels, not the idea.
 - **A teammate's hero beat ours on the first screen.** His board shows the whole experiment above the fold; ours showed a headline and
-  empty space, with the experiment far down the page. The fix was not more decoration but moving the real data (the live floor) into
+  empty space, with the experiment far down the page. The fix was not more decoration but moving the live data (the floor) into
   the hero, and moving it *below* the input on phones, where the action matters more than the display.
 - **A stale server fooled the first screenshots.** `pkill -f "next start"` does not match the running `next-server` process, so an old
   server on the same port kept serving HTML that pointed at deleted build files (the console showed a CSS MIME-type error). Kill

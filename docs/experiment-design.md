@@ -10,7 +10,7 @@ as grain (`thumbs_up`). The answer is the finding we report, not just a winner.
 The `actionable` prompt (scorecard plus concrete fixes) earns a higher 👍 rate than `control` (friendly roast) or
 `savage` (brutal comedy), because users value roasts that tell them what to change.
 
-We honestly do not know whether this is true. `savage` may win on entertainment value. That uncertainty is the point of
+We don't know whether this is true. `savage` may win on entertainment value. That uncertainty is the point of
 the test.
 
 ## Flag and variants
@@ -60,11 +60,11 @@ gets many `thumbs_down`, say so in the write-up.
    the chance that it beats control (Bayesian). Flagsmith gives control no chance of its own: it is the baseline.
 2. Decision rule, set before looking (registered in `prereg/experiment-1.md`): roll out a treatment when its chance of
    beating control is at least **90%** and we have at
-   least **~30 exposures per arm**. Otherwise report "no clear winner yet" and say so plainly.
+   least **~30 exposures per arm**. Otherwise report "no clear winner yet".
 3. Report real numbers separately from simulated rehearsal traffic.
 4. Roll the winner out by changing the flag, so the winner becomes the value everyone gets.
 
-## Statistical honesty
+## Statistical caveats
 
 - **Peeking:** checking results often and stopping when a number looks good inflates false wins. The decision rule above is
   fixed in advance and stated on the results page.

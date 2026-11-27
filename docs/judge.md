@@ -39,7 +39,7 @@ The result is `data/judge.json`, which `/race` shows as a section called "Before
 ```bash
 LLM_API_KEY=... npm run judge            # real: 3 prompts x 6 READMEs = 18 roasts and 18 judgements, about 3 minutes
 JUDGE_MODEL=<other model> npm run judge  # judge with a different model from the writer
-WINNOW_PREVIEW=1 npm run judge           # stand-in numbers, marked PREVIEW, to see the layout. They prove nothing
+WINNOW_PREVIEW=1 npm run judge           # stand-in numbers, marked PREVIEW, to see the layout. They say nothing about the prompts
 ```
 
 The script waits 2.5 seconds between calls to stay inside a free tier (`JUDGE_PAUSE_MS` changes it). A reply the judge gives that

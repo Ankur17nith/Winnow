@@ -20,7 +20,7 @@ npm run lint && npm test && npm run build
 
 CI runs the same three on every push to `main`. Do not commit on red.
 
-## Rules that keep the experiment honest
+## Rules for the experiment
 
 - **One identity per visitor, everywhere.** The identifier passed to `getExperimentFlag` and to every `trackEvent` comes
   from the signed cookie. A new event that uses anything else breaks the join in Flagsmith.

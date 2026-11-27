@@ -41,7 +41,7 @@ Exposure is recorded only when a roast is actually served.
 |---|---|---|
 | Roast liked | `thumbs_up` | **primary**: occurrence, up |
 | Roasted again | `roast_again` | early signal: a second roast by the same visitor |
-| Roast requested | `roast_requested` | sanity check only: near 100% in every arm by construction, so it cannot separate prompts |
+| Roast requested | `roast_requested` | sanity check only: near 100% in every arm, so it cannot separate prompts |
 
 `thumbs_down` and `copy` are recorded but are not metrics.
 

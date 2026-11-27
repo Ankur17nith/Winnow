@@ -68,7 +68,7 @@ numbers are real and which are simulated.
 | Risk | Mitigation |
 |---|---|
 | Free tier lacks Experimentation or a warehouse | Check in the first hour. If blocked, stop and consider self-hosting with Docker (Track 03 style) as a fallback. |
-| Too little traffic for a clear winner | Start early, use a high-base-rate event, report win probability honestly. |
+| Too little traffic for a clear winner | Start early, use a high-base-rate event, report the chance to beat control as it is. |
 | Free LLM quota exhausted | `roasts_enabled` kill switch, daily global cap, per-identity limit, input length cap. |
 | Events lost on serverless exit | Flush events before the response ends (`close()` or equivalent). Verify during the smoke test. |
 | Exposure and conversion identities differ | Single signed cookie ID, tested explicitly. |

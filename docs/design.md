@@ -68,7 +68,7 @@ labels are **Grain** (keep it) and **Chaff** (toss it), drawn as printed stamps,
 The first screen carries the experiment, not just a headline: the headline on the left, and on the right **the live floor**,
 three baskets (control, savage, actionable) with a pile under each as tall as the share of visitors who liked that prompt, and
 under each treatment Flagsmith's chance of beating control. It reads the same snapshot as `/race`. With no snapshot the piles are
-empty and say "no votes yet": nothing is invented. On narrow screens the floor moves to *after* the input, because the input is
+empty and say "no votes yet", with no placeholder numbers. On narrow screens the floor moves to *after* the input, because the input is
 the action and the floor is the display.
 
 - **A strip of paper waves** (gold, orange, sea blue, each with a 3 px ink edge) sits under the hero text and drifts by transform.
