@@ -9,6 +9,6 @@ flagsmith.env
 next-env.d.ts
 *.tsbuildinfo
 data/results.raw.json
-brag-output/
+video-output/
 video/work/
 presentation/slides/

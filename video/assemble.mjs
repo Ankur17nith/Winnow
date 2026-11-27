@@ -1,4 +1,4 @@
-// Encodes video/work/frames, mixes the voiceover over low music, and writes brag-output/{brag.mp4,brag.jpg,share-copy.txt}.
+// Encodes video/work/frames, mixes the voiceover over low music, and writes video-output/{winnow-demo.mp4,winnow-demo.jpg,share-copy.txt}.
 //   node video/assemble.mjs
 import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -6,18 +6,18 @@ import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname;
 const work = join(root, "video", "work");
-const out = join(root, "brag-output");
+const out = join(root, "video-output");
 mkdirSync(out, { recursive: true });
 const tl = JSON.parse(readFileSync(join(work, "timeline.json"), "utf8"));
 const total = tl.total;
 const frames = Math.round(total * tl.fps);
-const MUSIC = process.env.MUSIC ?? "/home/user/latent-spaces/brag/skills/brag/assets/music/happy-beats-business-moves-vol-1-by-ende-dot-app.mp3";
-const FIRST_BEAT = 3.0186; // from brag's cue file: the music starts on a beat at frame 0
+const MUSIC = process.env.MUSIC ?? join(root, "video", "assets", "music", "happy-beats-business-moves-vol-1.mp3");
+const FIRST_BEAT = 3.0186; // the track's first strong beat, from beat analysis; starting here puts the music on a beat at frame 0
 const ff = (args) => execFileSync("ffmpeg", ["-v", "error", "-y", ...args], { stdio: "inherit" });
 
 // Poster: the hook, fully settled (6.6 s in), also baked in as frame 0 so every platform's thumbnail shows it.
 const posterIdx = String(Math.round(6.6 * tl.fps)).padStart(6, "0");
-copyFileSync(join(work, "frames", `${posterIdx}.jpg`), join(out, "brag.jpg"));
+copyFileSync(join(work, "frames", `${posterIdx}.jpg`), join(out, "winnow-demo.jpg"));
 copyFileSync(join(work, "frames", `${posterIdx}.jpg`), join(work, "frames", "000000.jpg"));
 
 // Picture.
@@ -38,11 +38,11 @@ const filter = [
 ].join(";");
 ff([...inputs, "-filter_complex", filter, "-map", "[mix]", "-c:a", "aac", "-b:a", "192k", join(work, "sound.m4a")]);
 
-ff(["-i", join(work, "picture.mp4"), "-i", join(work, "sound.m4a"), "-map", "0:v", "-map", "1:a", "-c", "copy", "-shortest", "-movflags", "+faststart", join(out, "brag.mp4")]);
+ff(["-i", join(work, "picture.mp4"), "-i", join(work, "sound.m4a"), "-map", "0:v", "-map", "1:a", "-c", "copy", "-shortest", "-movflags", "+faststart", join(out, "winnow-demo.mp4")]);
 
 writeFileSync(join(out, "share-copy.txt"),
   "Teams pick LLM prompts on a gut feeling. Winnow puts the prompt behind a Flagsmith flag: paste your README, get roasted by one of three prompts, vote grain or chaff, and Flagsmith Experimentation finds the winner. Built for the WeMakeDevs x Flagsmith hackathon. github.com/Ankur17nith/Winnow\n");
 
-const probe = (args) => execFileSync("ffprobe", ["-v", "error", ...args, join(out, "brag.mp4")], { encoding: "utf8" }).trim();
+const probe = (args) => execFileSync("ffprobe", ["-v", "error", ...args, join(out, "winnow-demo.mp4")], { encoding: "utf8" }).trim();
 console.log("frames", probe(["-select_streams", "v", "-count_frames", "-show_entries", "stream=nb_read_frames", "-of", "csv=p=0"]), "expected", frames);
 console.log("duration", probe(["-show_entries", "format=duration", "-of", "csv=p=0"]), "expected", total.toFixed(3));
