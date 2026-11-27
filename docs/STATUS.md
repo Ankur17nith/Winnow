@@ -29,6 +29,13 @@ result exists. The steps that need accounts are in [human-runbook.md](human-runb
 | Warehouse connection | **not checked yet** |
 | Flags, metrics, experiment | **not created yet** (one command: runbook §2) |
 
+## What the first live run showed (27 Nov)
+
+`flagsmith login` and `flagsmith init` worked against the `winnow` project. The warehouse check in `npm run setup:flagsmith` was
+passed (it stops when there is none). The run then stopped after creating `roast_prompt` and its first variant, because the CLI
+wrapper misread a success message as an error. That is fixed and tested, and the pre-registration has been hashed and tagged
+(`prereg-exp1`). The flag, the other variant, the metrics and the experiment still have to be created by running the setup again.
+
 ## What is NOT verified, because it needs an account or a person
 
 These are not known to be broken. They are unproven. In order of risk:

@@ -90,4 +90,11 @@ broke, surprised you, or changed a decision, and say what the code does about it
 - **A stale server fooled the first screenshots.** `pkill -f "next start"` does not match the running `next-server` process, so an old
   server on the same port kept serving HTML that pointed at deleted build files (the console showed a CSS MIME-type error). Kill
   `next-server`, use a fresh port per run, and treat any console error as a reason to distrust the picture.
+- **The first live run found a bug the dry run couldn't.** The setup stopped at step 2 with `variant add ... failed:` followed by
+  `✓ Added variant ... (37805) to roast_prompt`. The CLI prints its success messages to stderr with empty stdout, and the wrapper
+  treated "empty stdout plus anything on stderr" as a failure. That rule had been written for the case where the CLI prints
+  `Error: ...` to stderr and exits 0. A failure now needs a non-zero exit, or empty stdout together with a line starting with
+  "Error". The setup is idempotent, so running it again after the fix carried on from the variant that already existed.
+- **A secret in a screenshot is a secret shared.** The terminal showed a freshly generated cookie secret. It protects signed
+  cookies and vote tokens, so it was replaced before use. Generate secrets after you have closed the screen share.
 

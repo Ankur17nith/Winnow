@@ -72,6 +72,7 @@ Write down the experiment id. The script is safe to run again: it reuses flags, 
 |---|---|---|
 | `This environment has no warehouse connection` | Experiments cannot record results yet | Connect one: https://docs.flagsmith.com/experimentation/connect-a-warehouse, then run again. A teammate's project reports enabling the **managed warehouse** on a free-plan *Production* environment; if Development does not offer it, set up in Production instead |
 | `OS keychain unavailable` | The CLI cannot store its login on this machine | Set `FLAGSMITH_API_KEY` to a Master API key for this terminal only, then run again. Revoke the key afterwards |
+| `... failed:` followed by a line starting with `✓` | An older version of the script treated the CLI's success message as an error | `git pull`, then run the same command again. It reuses everything it already created |
 | `Could not find an id for ...` or `Variant ... was not found in \`feature variant list\`` | The CLI's output is shaped differently from what the script expects | Send the whole message; it names the keys it saw |
 
 ## §3 — Deploy on Vercel (10 min)
