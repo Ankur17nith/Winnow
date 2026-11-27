@@ -1,0 +1,13 @@
+$ npm run setup:flagsmith -- --environment <client key>
+1/5 Warehouse check
+  ok: 1 connection(s)
+2/5 Flags
+  roast_prompt exists, reusing it (values untouched)
+  variant savage exists
+  roast_prompt id 306624, variants {"savage":37805,"actionable":37827}
+3/5 Metrics
+4/5 Experiment (created, not started)
+5/5 Done
+  Experiment id: 1048
+  Next: deploy, run `npm run smoke -- <url>`, then start it with:
+  npm run setup:flagsmith -- --environment <client key> --start 1048
