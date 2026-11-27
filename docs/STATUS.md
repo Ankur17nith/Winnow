@@ -7,7 +7,7 @@ yet, so no result exists. The steps that need accounts are in [human-runbook.md]
 
 | Area | Evidence |
 |---|---|
-| Identity, roast tokens, limits, request guards, decision rule, results adapter, `winnow-kit` | 17 unit tests, `npm test`, all passing on 27 Nov |
+| Identity, roast tokens, limits, request guards, decision rule, results adapter, `winnow-kit` | 19 unit tests, `npm test`, all passing on 27 Nov |
 | Types and production build | `npm run lint` (tsc) and `npm run build` clean; the same steps run in [CI](../.github/workflows/ci.yml) |
 | The whole visitor flow: paste, roast, vote, reveal, copy, share card | Driven in headless Chromium against a production build in preview mode, at 1280 and 390 px wide; no console errors |
 | Security headers and the content-security-policy | `curl -I` on a production build shows CSP, `X-Frame-Options: DENY`, `nosniff`, referrer policy; the page renders under them with no CSP violations |
@@ -37,18 +37,24 @@ These are not known to be broken. They are unproven. In order of risk:
 2. **Events from a Vercel function.** The SDK buffers events; each route calls `flushEvents()` before it returns, but a
    frozen serverless function could still drop them. Runbook §4 is the test: one smoke run, then look for the exposure
    and the `thumbs_up` in the dashboard before starting the experiment.
-3. **The CLI's JSON shapes.** The setup script reads ids out of `feature get --json` and the metric and experiment
-   responses. It looks for them defensively and stops naming the keys it saw if they are not there.
-4. **The results response.** `lib/results.ts` accepts a few likely field names and fails loudly with the keys it saw
-   otherwise. Expect one small fix on the first real `npm run results`.
-5. **Remote prompts through the real SDK.** The app assumes `getExperimentFlag` returns the allocated variant's value in
+3. **The CLI's JSON shapes.** The setup script reads variant ids from `feature variant list --json` and ids from the metric
+   and experiment responses, the same calls a teammate's repo uses against a live account. It stops naming the keys it saw
+   if they are not there.
+4. **The results response, on this account.** `lib/results.ts` reads the shape documented from a live response in a teammate's
+   repository (`results.payload.metrics[]` with `variants{n,sum}` and `inference{chance_to_win,lift,ci_low,ci_high}`,
+   `chance_to_win` being each treatment's chance of beating control). It is tested against a fixture of that shape, not yet
+   against this project's own experiment. It fails loudly, naming the keys it saw, if they differ.
+5. **Ending the experiment with a winner.** `npm run ship` calls `.../complete/` with `rollout_decision=<winner key>`.
+   Only `rollout_decision=control` has been seen to work (a teammate's smoke test). If a treatment's key is rejected the
+   script stops with Flagsmith's error; the fallback is `flag update --weight` after ending the experiment in the dashboard.
+6. **Remote prompts through the real SDK.** The app assumes `getExperimentFlag` returns the allocated variant's value in
    `flag.value` and its key in `flag.variant`, and that the control group has no variant key. This is read from the SDK's
    type definitions, not seen against a live experiment. If it is wrong the app falls back to the prompts in code and the
    roasts still work, but the flag's values would not be what is being tested. Check on the first smoke test: change a
    variant's value in Flagsmith and see the roast style change.
-6. **The default Groq model** (`llama-3.3-70b-versatile`). If roasts fail, set `LLM_MODEL` to one listed in the Groq
+7. **The default Groq model** (`llama-3.3-70b-versatile`). If roasts fail, set `LLM_MODEL` to one listed in the Groq
    console.
-7. **Traffic.** The track allows simulated traffic. Real visitors make a better story and are not guaranteed.
+8. **Traffic.** The track allows simulated traffic. Real visitors make a better story and are not guaranteed.
 
 ## Known limitations (by design, documented)
 

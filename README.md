@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Ankur17nith/Winnow/actions/workflows/ci.yml/badge.svg)](https://github.com/Ankur17nith/Winnow/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-17%20passing-brightgreen)](#tests-and-checks)
+[![Tests](https://img.shields.io/badge/tests-19%20passing-brightgreen)](#tests-and-checks)
 [![Flagsmith](https://img.shields.io/badge/built%20with-Flagsmith%20Experimentation-7b5cff)](https://docs.flagsmith.com/experimentation)
 [![Hackathon](https://img.shields.io/badge/WeMakeDevs%20x%20Flagsmith-Track%2001%3A%20Test%20Something%20Real-black)](https://www.wemakedevs.org/hackathons/flagsmith)
 
@@ -16,7 +16,7 @@ engine says which prompt wins. The winner ships through the same flag, with no r
 
 - Source: https://github.com/Ankur17nith/Winnow
 - Live demo: *not deployed yet* (see [Status](#status))
-- The race page, `/race`: win probability per prompt, from the latest results snapshot
+- The race page, `/race`: each prompt's like rate and Flagsmith's chance that it beats control, from the latest results snapshot
 - `winnow-kit`: [kit/README.md](kit/README.md), A/B test your own prompts in about ten lines
 
 **What runs where:** the app is a single Next.js service. Flagsmith Cloud holds the flags, events and experiment. A free-tier
@@ -29,10 +29,10 @@ LLM (Groq) writes the roasts. Nothing else is involved: no database, no accounts
 
 | At a glance | Value | Source |
 | --- | --- | --- |
-| Automated tests, all passing | 17 | `npm test` |
+| Automated tests, all passing | 19 | `npm test` |
 | Prompt variants under test | 3 (`control`, `savage`, `actionable`) | [lib/prompts.ts](lib/prompts.ts) |
 | Metrics | `thumbs_up` (primary), `roast_again` (fires early in a visit), `roast_requested` (sanity check) | [docs/experiment-design.md](docs/experiment-design.md) |
-| Decision rule, fixed in advance | win probability at least 90% and 30 visitors per arm | [lib/decision.ts](lib/decision.ts) |
+| Decision rule, fixed in advance | a treatment needs at least a 90% chance of beating control and every arm needs 30 visitors | [lib/decision.ts](lib/decision.ts) |
 | Real experiment results | **none yet**: the experiment has not been started | see [Status](#status) |
 
 ## Status
@@ -62,7 +62,7 @@ No keys needed.
 
 ```bash
 npm install
-npm test                       # 17 tests
+npm test                       # 19 tests
 npm run lint                   # type check
 WINNOW_PREVIEW=1 COOKIE_SECRET=any-long-secret-here npm run dev
 ```
@@ -74,11 +74,14 @@ at `data/results.json` (shape in [lib/standings.ts](lib/standings.ts)).
 To see every Flagsmith call the setup would make, without an account:
 `npm run setup:flagsmith -- --environment demo --dry-run`.
 
-To see the approval gate: write a snapshot where one variant has at least 90% win probability and at least 30 visitors
+To see the approval gate: write a snapshot where one variant has at least a 90% chance of beating control and at least 30 visitors
 per arm, then run `npm run ship -- --dry-run`. It prints the exact `flagsmith flag update` command and never runs it.
 
 ## What's new here
 
+- **The decision rule is pre-registered and hashed.** `prereg/experiment-1.md` is written before any data, hashed, and tagged;
+  the experiment's hypothesis in Flagsmith is its text word for word, and the setup refuses to start an experiment whose
+  file has changed since it was hashed. The habit comes from a teammate's repo, [Fork in the Bill](https://github.com/Prashant-thakur77/fork-in-the-bill).
 - **Prompts are Flagsmith remote config.** The prompt text lives in the flag's variant values, so a prompt can be edited, or
   a fourth one added, in Flagsmith with no deploy. The safety rules are appended by the code and are not part of the flag,
   so a bad value can change the style of a roast but never remove them.
@@ -133,7 +136,7 @@ after `flagsmith login`. The deployed app never holds an admin key. More detail:
 | Metrics | `thumbs_up` (primary), `roast_again` (early signal), `roast_requested` (sanity check). `thumbs_down` is a guardrail, `copy` secondary |
 | Split | about 34 / 33 / 33, 100% of visitors enrolled |
 | Identity | signed anonymous cookie, the same ID for exposure and conversion |
-| Decision rule | ship at 90% win probability with 30 visitors in every arm, otherwise report "no clear winner" |
+| Decision rule | ship a treatment at a 90% chance of beating control with 30 visitors in every arm, otherwise keep control and report "no clear winner". Registered in [prereg/experiment-1.md](prereg/experiment-1.md) |
 
 Statistical caveats (peeking, three arms, self-selected voters) are written down in
 [docs/experiment-design.md](docs/experiment-design.md).
@@ -141,7 +144,7 @@ Statistical caveats (peeking, three arms, self-selected voters) are written down
 ## Why it needs Flagsmith
 
 - The multivariate flag **is** the product: the prompts themselves are the variants' values (remote config), not a code branch.
-- Exposure and conversion events go through the Flagsmith SDK into Experimentation, which computes win probability.
+- Exposure and conversion events go through the Flagsmith SDK into Experimentation, which computes each prompt's chance of beating control.
 - `roasts_enabled` is a second flag used as a kill switch to protect the free LLM quota.
 - Shipping the winner is a flag change (`flag update --weight`), not a deploy.
 
@@ -154,7 +157,8 @@ Statistical caveats (peeking, three arms, self-selected voters) are written down
 | `npm run lint` | Type check |
 | `npm run simulate -- --users 300` | Rehearsal traffic with `sim_` identities (use a separate environment) |
 | `npm run results -- --environment <key> --experiment <id> [--simulated]` | Pull results with the Flagsmith CLI into `data/results.json` |
-| `npm run ship -- [--dry-run]` | Apply the decision rule; ship only after a human types the winner's name |
+| `npm run ship -- --environment <key> --experiment <id> [--dry-run]` | Apply the decision rule; end the experiment and roll the winner out only after a human types its name |
+| `npm run prereg -- hash` / `verify` | Hash the pre-registration, and check it has not been edited since |
 | `npm run setup:flagsmith -- --environment <key> [--dry-run] [--start <id>]` | Create flags, metrics and the experiment in one go; `--start` starts it |
 | `npm run smoke -- <url>` | Nine checks against a running app: pages, headers, a refused cross-site POST, a roast, a vote, the share card |
 
@@ -175,7 +179,7 @@ Full list, with the test behind each control, in [docs/safety.md](docs/safety.md
 
 ## Tests and checks
 
-- `npm test`: 17 tests covering identity signing and tamper rejection, token expiry, prompt fallback and remote prompts, the
+- `npm test`: 19 tests covering identity signing and tamper rejection, token expiry, prompt fallback and remote prompts, the
   URL allow-list, length and per-IP caps, request guards, the decision rule, the results adapter, the split check, the
   plain-English explanation and `winnow-kit`.
 - `npm run lint` and `npm run build` run in [CI](.github/workflows/ci.yml) on every push.

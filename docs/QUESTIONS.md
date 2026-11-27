@@ -9,6 +9,11 @@ tick the box.
   track's "before Sunday". Check the Schedule tab on the hackathon page.
 - [ ] **Does the Development environment have a warehouse connection?** `npm run setup:flagsmith` checks this first and
   stops if not.
+- [ ] **Which Flagsmith environment has the managed warehouse?** A teammate's project enabled it on a free-plan *Production*
+  environment. Ours is set up in Development; if Development cannot enable a warehouse, the whole setup moves to Production
+  (a different client environment key and server-side key).
+- [ ] **Does the pre-registration (`prereg/experiment-1.md`) say what you want?** Read the hypothesis, the decision rule and the
+  stopping rule before it is hashed. After hashing it is never edited.
 - [ ] **Real traffic, simulated, or both?** Assumption: both. Real visitors on the production environment; simulated
   rehearsal runs only in a separate environment, labelled everywhere.
 - [ ] **Does the submission need an AI-tools disclosure?** The hackathon FAQ has a question "Can I use AI coding tools?".

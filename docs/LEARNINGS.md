@@ -61,3 +61,23 @@ broke, surprised you, or changed a decision, and say what the code does about it
   `"type": "module"` in `package.json` removed the warning and changed nothing else (the build and tests still pass).
 - **GitHub Pages cannot host Winnow.** It serves static files, and the roast, vote and card routes need a server that
   holds the keys. Vercel runs the pages and the API routes as one project.
+
+## Fri 27 Nov
+
+- **A teammate's repository showed what Flagsmith's results actually look like.** Flagsmith's `chance_to_win` is each
+  treatment's chance of beating control; control gets no number, because it is the baseline. Winnow's first adapter, written
+  from guesses, treated it as each prompt's chance of being the best of all three, and the race page, the decision rule and
+  the explanation were all built on that. Fixed in all of them: piles now show the observed like rate (which every arm has),
+  treatments show their chance of beating control, control shows "baseline", and only a treatment can ship. The adapter is
+  tested against a fixture of the documented shape.
+- **The same repository used `feature variant list --json` to read variant ids**, and detected "does this feature exist?" from
+  the CLI's `not found` message. The setup script had read variants out of `feature get` and treated any failure as "does not
+  exist", which would have hidden an auth error behind a confusing "already exists" later. It now does what the live-tested
+  scripts do. It also learned that Flagsmith rejects a rollout that omits any variant of the flag, which the setup already
+  satisfied by listing every keyed variant.
+- **Pre-registration is cheap and worth stealing.** The same repository writes the question, hypothesis, metrics and decision
+  rule down before any data, hashes the file, tags it, and sends Flagsmith the hypothesis word for word. Winnow now does the
+  same (`prereg/experiment-1.md`, `npm run prereg`), and the setup refuses to start an experiment whose file has changed.
+- **A fallback in a one-liner swallowed uncommitted work.** `git checkout <file> || git stash` was meant to undo a test edit;
+  the file was untracked, the checkout failed, and the stash took every uncommitted change with it. `git stash pop` restored
+  all of it. Do not write a destructive fallback after `||`.

@@ -2,6 +2,23 @@
 
 Dates are UTC. Versions are this repository's own; they are not published anywhere.
 
+## v0.8.0 — 27 Nov 2026 (results read the way Flagsmith reports them, and a pre-registration)
+
+Fixed
+- **"Win probability" meant the wrong thing.** Flagsmith reports each treatment's chance of beating control and gives control
+  none; Winnow had treated it as each prompt's chance of being the best. The results adapter, the decision rule, the plain-English
+  explanation, `/race`, the reveal panel and the deck now use the real meaning: piles show the observed like rate, treatments
+  show their chance of beating control, control is the baseline, and only a treatment can ship.
+- The setup script reads variant ids from `feature variant list`, tells "not found" from a real failure, sends a metric
+  `description`, and pages metrics at 999, as a live-tested teammate's scripts do.
+
+Added
+- **A pre-registration** (`prereg/experiment-1.md`), a hash tool (`npm run prereg -- hash | verify`), and a setup that sends
+  the registered hypothesis to Flagsmith verbatim and refuses to start an experiment whose file changed after hashing.
+- Flagsmith's own sample-ratio p-value is read from the results and shown next to ours.
+- `npm run ship` ends the experiment with `rollout_decision=<winner>`; only `control` has been seen to work, so a rejected key
+  stops with Flagsmith's error. Two more tests (19 in total), including a fixture of the live results shape.
+
 ## v0.7.0 — 27 Nov 2026 (remote prompts and results that check themselves)
 
 Added

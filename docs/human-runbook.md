@@ -70,9 +70,9 @@ Write down the experiment id. The script is safe to run again: it reuses flags, 
 
 | If you see | It means | Do |
 |---|---|---|
-| `This environment has no warehouse connection` | Experiments cannot record results yet | Connect one: https://docs.flagsmith.com/experimentation/connect-a-warehouse, then run again |
+| `This environment has no warehouse connection` | Experiments cannot record results yet | Connect one: https://docs.flagsmith.com/experimentation/connect-a-warehouse, then run again. A teammate's project reports enabling the **managed warehouse** on a free-plan *Production* environment; if Development does not offer it, set up in Production instead |
 | `OS keychain unavailable` | The CLI cannot store its login on this machine | Set `FLAGSMITH_API_KEY` to a Master API key for this terminal only, then run again. Revoke the key afterwards |
-| `Could not find an id for ...` or `Variant ... has no id or key` | The CLI's output is shaped differently from what the script expects | Send the whole message; it names the keys it saw |
+| `Could not find an id for ...` or `Variant ... was not found in \`feature variant list\`` | The CLI's output is shaped differently from what the script expects | Send the whole message; it names the keys it saw |
 
 ## §3 — Deploy on Vercel (10 min)
 
@@ -103,7 +103,19 @@ not be tested before deploy.
 | `FAIL roast served (The roaster failed (4xx))` | The Groq key or model is wrong. Set `LLM_MODEL` in Vercel to a model your Groq console lists, redeploy |
 | `FAIL roast served (Something went wrong. Try again.)` or `(500)` | Open the deployment's **Logs** in Vercel. `FLAGSMITH_ENVIRONMENT_KEY is not set` or `COOKIE_SECRET must be set` means a variable is missing: add it, redeploy |
 
-## §5 — Start the experiment (1 min)
+## §5 — Register, then start the experiment (5 min)
+
+Read [`prereg/experiment-1.md`](../prereg/experiment-1.md). It is the question, the hypothesis, the metrics, the decision rule
+and the stopping rule, written before any data. If you agree with it, hash and tag it, **before** starting:
+
+```bash
+npm run prereg -- hash
+git add prereg && git commit -m "prereg: register experiment 1"
+git tag -a prereg-exp1 -m "Pre-registration, experiment 1"
+git push origin main --tags
+```
+
+The start step refuses to run if the file has changed since it was hashed. Then:
 
 ```bash
 npm run setup:flagsmith -- --environment <client environment key> --start <experiment id>
@@ -125,22 +137,26 @@ Expected: `Experiment status: running`. From now on the flag is locked until the
 
 ```bash
 npm run results -- --environment <client environment key> --experiment <id>
-npm run ship -- --dry-run
+npm run ship -- --environment <client environment key> --experiment <id> --dry-run
 ```
 
-Expected from `results`: `Wrote data/results.json (3 variants, simulated=false).` and one line per variant with
-visitors, grain and win probability. Expected from `ship --dry-run`: either `Decision: WAIT. Nothing to ship.` with the
+Expected from `results`: `Wrote data/results.json (3 variants, metric "Roast liked", simulated=false).` and one line per variant with
+visitors, grain and, for each treatment, its chance of beating control (control is the baseline and shows none), then
+Flagsmith's own sample-ratio check. Expected from `ship --dry-run`: either `Decision: WAIT. Nothing to ship.` with the
 reason, or `Decision: SHIP <variant>.` with the exact command it would run.
 
 If it says SHIP:
 
-1. End the experiment in the Flagsmith dashboard (a running experiment locks the flag).
-2. `npm run ship`, then type the winner's name when asked. Anything else cancels.
+1. `npm run ship -- --environment <client environment key> --experiment <id>`, then type the winner's name when asked.
+   Anything else cancels. It ends the experiment with `rollout_decision=<winner>`, which rolls the winner out through the same
+   flag. If Flagsmith rejects that, it stops with Flagsmith's exact error and nothing else changes: send it to me.
+2. Check in the dashboard that the flag now serves the winner.
 
 Either way, commit `data/results.json` (and `data/decision.json` if you shipped) and push. Vercel redeploys and `/race`
 shows the numbers.
 
-If `results` says `Unrecognised results shape`, send the whole message: `lib/results.ts` needs a small change.
+If `results` says `Flagsmith has no results payload yet`, wait a minute after the refresh and run it again. If it names
+other keys it did not expect, send the whole message: `lib/results.ts` needs a small change.
 
 ## §8 — Submit (Sunday)
 

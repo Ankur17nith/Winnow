@@ -12,6 +12,7 @@ prints the test count, and [STATUS.md](STATUS.md) says what is proven and what i
 | You want to know what works today, with evidence, and what is still unproven | [`STATUS.md`](STATUS.md) |
 | You are the person deploying it: every step, in order, with what you should see | [`human-runbook.md`](human-runbook.md) |
 | You want to know exactly what is being tested, how it is measured and when a winner is declared | [`experiment-design.md`](experiment-design.md) |
+| You want the decision rule as it was fixed before any data, and how to tell it has not been edited | [`../prereg/experiment-1.md`](../prereg/experiment-1.md), `npm run prereg -- verify` |
 | You want to know whether the app can be abused, and which test proves each control | [`safety.md`](safety.md) |
 | You want the request flow, the trust boundaries and why there is no database | [`architecture.md`](architecture.md) |
 | Something surprised us and you want to know why the code is the way it is | [`LEARNINGS.md`](LEARNINGS.md) |
@@ -34,7 +35,8 @@ Every script is runnable with `npm run`. The ones that talk to Flagsmith use the
 | `npm run smoke -- <url>` | Nine checks against a running app: pages, headers, a refused cross-site POST, a roast, a vote, the share card |
 | `npm run simulate -- --users 300` | Rehearsal visitors named `sim_*`, for a separate environment only |
 | `npm run results -- --environment <key> --experiment <id>` | Pulls results into `data/results.json`, which the reveal panel and `/race` read |
-| `npm run ship -- --dry-run` | Applies the decision rule. Without `--dry-run` it ships only after a person types the winner's name |
+| `npm run ship -- --environment <key> --experiment <id> [--dry-run]` | Applies the decision rule. Without `--dry-run` it ends the experiment and rolls the winner out only after a person types its name |
+| `npm run prereg -- hash` · `verify` | Hashes the pre-registration, and checks that it has not been edited since |
 
 ## Kept as a record
 

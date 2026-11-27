@@ -59,7 +59,7 @@ labels are **Grain** (keep it) and **Chaff** (toss it), drawn as printed stamps,
 4. **Gold band.** Candid stats strip (visitors, votes) read from the saved results snapshot, labelled with its date.
 5. **How it works.** Three paper scenes (flag assigns a basket, you vote, the Bayesian engine picks a winner). Desktop
    may use a pinned horizontal slide; phones and reduced motion get a plain stack.
-6. **Results (stretch).** Three piles of grain, each with its win probability. The tallest is the winner. Simulated data
+6. **Results (stretch).** Three piles of grain, as tall as each prompt's like rate, with Flagsmith's chance of beating control under each treatment. Simulated data
    is always labelled with `sim`.
 7. **Footer.** Paper-wave strip into deep sea, big wordmark, links to the repo, the Flagsmith project and the hackathon.
 

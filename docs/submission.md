@@ -19,7 +19,7 @@ three system prompts from a multivariate Flagsmith flag, then votes grain (keep 
 | Early metric | `roast_again` (Roasted again) |
 | Sanity check | `roast_requested` (fires for every roast) |
 | Identity | signed anonymous cookie, the same for exposure and conversion |
-| Decision rule (set before looking) | ship at 90% win probability with 30 visitors in every arm |
+| Decision rule (pre-registered, `prereg/experiment-1.md`) | ship a treatment at a 90% chance of beating control with 30 visitors in every arm |
 | Run | `<start date>` to `<end date>` |
 
 ## Results
@@ -27,7 +27,7 @@ three system prompts from a multivariate Flagsmith flag, then votes grain (keep 
 Traffic: `<N real visitors>` real, `<N simulated>` simulated (simulated runs were in a separate environment and are
 reported separately).
 
-| Prompt | Visitors | Liked | Win probability |
+| Prompt | Visitors | Liked | Chance to beat control |
 |---|---|---|---|
 | control | | | |
 | savage | | | |
@@ -64,5 +64,6 @@ Tick only what the table says "Yes" to, and only after the experiment has actual
 ## How Flagsmith is used
 
 The multivariate flag holds the prompts. The Node SDK's `getExperimentFlag` records exposures and `trackEvent` records
-conversions. Experimentation computes win probability. Shipping the winner is `flagsmith flag update --weight`, gated by
+conversions. Experimentation computes each prompt's chance of beating control. Shipping the winner ends the experiment with
+`rollout_decision=<winner>` through the CLI, gated by
 a human approval step. A second flag, `roasts_enabled`, is the kill switch.

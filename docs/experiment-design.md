@@ -56,8 +56,10 @@ gets many `thumbs_down`, say so in the write-up.
 
 ## Analysis plan
 
-1. Read results from Flagsmith: per-variant conversion rate, lift against control, win probability (Bayesian).
-2. Decision rule, set before looking: roll out a variant when its win probability is at least **90%** and we have at
+1. Read results from Flagsmith: per-variant like rate, and for each treatment its lift over control with a 95% interval and
+   the chance that it beats control (Bayesian). Flagsmith gives control no chance of its own: it is the baseline.
+2. Decision rule, set before looking (registered in `prereg/experiment-1.md`): roll out a treatment when its chance of
+   beating control is at least **90%** and we have at
    least **~30 exposures per arm**. Otherwise report "no clear winner yet" and say so plainly.
 3. Report real numbers separately from simulated rehearsal traffic.
 4. Roll the winner out by changing the flag, so the winner becomes the value everyone gets.
