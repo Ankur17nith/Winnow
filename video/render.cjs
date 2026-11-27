@@ -17,6 +17,16 @@ const LEAD = 0.6, TAIL = 1.3, DIP = 0.3;
 const WORK = path.join(__dirname, "work");
 const manifest = JSON.parse(fs.readFileSync(path.join(WORK, "vo", "manifest.json"), "utf8"));
 const vo = (s) => (manifest[s] ? manifest[s].dur : 0);
+// Seconds into a voiceover clip at which a word is spoken (from video/words.mjs). Falls back if the clip has no timings.
+const wordsCache = {};
+function wordAt(scene, word, nth = 1, fallback = 0) {
+  const m = manifest[scene];
+  if (!m) return fallback;
+  const f = path.join(WORK, "vo", `words-${path.basename(m.file, ".mp3")}.json`);
+  const d = (wordsCache[f] ??= fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : { words: [] });
+  const norm = (x) => x.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return d.words.filter((w) => norm(w.t) === norm(word))[nth - 1]?.s ?? fallback;
+}
 const ceilBeat = (s) => Math.ceil(s / BEAT - 1e-9) * BEAT;
 const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
@@ -157,8 +167,9 @@ body > *:not(#__overlay):not(.v){display:none!important}
 .v-term .bar i{width:14px;height:14px;border-radius:50%;background:#ff5a1f;display:inline-block}
 .v-term .bar i+i{background:#ffc93c} .v-term .bar i+i+i{background:#19c79a}
 .v-term .body{height:560px;overflow:hidden;padding:20px 28px}
+.v-term pre .ln{display:block}
 .v-term pre{margin:0;font:400 21px/1.62 var(--font-plex),monospace;color:#fff7ea;white-space:pre-wrap;word-break:break-all}
-.v-term .step{color:#ffc93c;font-weight:500} .v-term .cmd{color:#c9d3f5} .v-term .json{color:#8fe3c6}
+.v-term .tstep{color:#ffc93c;font-weight:500} .v-term .cmd{color:#c9d3f5} .v-term .json{color:#8fe3c6}
 .v-row{display:flex;gap:20px;flex-wrap:wrap}
 .v-chip{font:600 24px/1 var(--font-plex),monospace;color:var(--ink);background:var(--card);border:3px solid var(--ink);border-radius:10px;padding:14px 18px}
 .v-chip.on{background:var(--mint)}
@@ -194,14 +205,14 @@ function textUnit(id, scenes, build, extra = {}) {
   return { id, scenes, kind: "text", build, ...extra };
 }
 
-const dry = fs.readFileSync(path.join(WORK, "dryrun.txt"), "utf8").trim().replace(/ENVIRONMENT_KEY/g, "<env>");
+const setupRun = fs.readFileSync(path.join(__dirname, "evidence-setup.txt"), "utf8").trim().split("\n");
 const shipCode = `const rl = createInterface({ input: process.stdin, output: process.stdout });
 const answer = (await rl.question(\`Type "\${d.winner}" to approve and ship\`)).trim();
 if (answer !== d.winner) {
   console.log("Cancelled. Nothing changed.");
   process.exit(0);
 }
-flagsmith(["flag", "update", "roast_prompt", "--weight", weights]);`;
+flagsmith(["api", completeUrl, "--method", "POST", "-F", \`rollout_decision=\${d.winner}\`]);`;
 const tests = fs.readFileSync(path.join(WORK, "tests.txt"), "utf8").trim().split("\n");
 const kitCode = `const winnow = createWinnow({
   flagsmith,
@@ -285,36 +296,41 @@ const UNITS = [
       return `<div class="v" style="gap:18px"><p class="v-eyebrow" data-in="0.1,0.5" data-fx="fade">Real responses from the running app</p>
         <h1 class="v-h sm" data-in="0.2,0.6">A vote can't be forged.</h1><div class="v-ev">${html}</div></div>`;
     }, min: 14 },
-  textUnit("u7s", ["7"], (o) => `<div class="v" style="gap:22px">
-    <p class="v-eyebrow" data-in="0.1,0.5" data-fx="fade">Real output · npm run setup:flagsmith -- --dry-run</p>
+  textUnit("u7s", ["7"], (o) => {
+    // line index ranges in evidence-setup.txt -> the word that introduces them
+    const when = [0.3, ...Array(2).fill(wordAt(7, "warehouse", 1, 1.5)), ...Array(4).fill(wordAt(7, "flag", 1, 3.5)), wordAt(7, "metrics", 1, 5.5), ...Array(3).fill(wordAt(7, "experiment", 1, 6.5)), ...Array(2).fill(wordAt(7, "started", 1, 9))];
+    const lines = setupRun.map((l, i) => `<span class="ln${/^\d\/5/.test(l) ? " tstep" : ""}" data-in="${o.v + (when[i] ?? 9)},0.35" data-fx="fade">${esc(l)}</span>`).join("");
+    return `<div class="v" style="gap:22px">
+    <p class="v-eyebrow" data-in="0.1,0.5" data-fx="fade">The real setup run · the winnow project, 27 Nov</p>
     <h1 class="v-h sm" data-in="0.2,0.6">One command sets up the test.</h1>
-    <div class="v-term" data-in="0.5,0.6" data-fx="pop"><div class="bar"><i></i><i></i><i></i>&nbsp;&nbsp;winnow % npm run setup:flagsmith -- --environment &lt;env&gt; --dry-run</div>
-      <div class="body" data-follow><pre data-type="${o.v + 0.2},155">${esc(dry)}</pre></div></div>
-    <div class="v-row"><span class="v-chip" data-in="${o.v + 6.8},0.5" data-on="${o.v + 7.4}">exposure → anonymous id</span>
-      <span class="v-chip" data-in="${o.v + 7.2},0.5" data-on="${o.v + 7.8}">vote → the same id</span>
-      <span class="v-chip" data-in="${o.v + 8.6},0.5" data-on="${o.v + 9.2}">Flagsmith compares the arms</span></div></div>`, { min: 12 }),
+    <div class="v-term" data-in="0.5,0.6" data-fx="pop"><div class="bar"><i></i><i></i><i></i>&nbsp;&nbsp;npm run setup:flagsmith</div>
+      <div class="body" data-follow><pre>${lines}</pre></div></div>
+    <div class="v-row"><span class="v-chip" data-in="${o.v + wordAt(7, "connected", 1, 2.4)},0.5" data-on="${o.v + wordAt(7, "connected", 1, 2.4) + 0.4}">warehouse connected</span>
+      <span class="v-chip" data-in="${o.v + wordAt(7, "metrics", 1, 5.5)},0.5" data-on="${o.v + wordAt(7, "metrics", 1, 5.5) + 0.4}">3 metrics</span>
+      <span class="v-chip" data-in="${o.v + wordAt(7, "1048", 1, 8)},0.5" data-on="${o.v + wordAt(7, "1048", 1, 8) + 0.4}">experiment 1048, not started</span></div></div>`;
+  }, { min: 12 }),
   { id: "u8r", scenes: ["8", "8R"], kind: "app", url: "/race", chip: "The real race page · no results yet: the experiment has not run" },
   textUnit("u9a", ["9"], (o) => `<div class="v">
     <p class="v-eyebrow" data-in="0.1,0.5" data-fx="fade">Real code · scripts/ship-winner.ts</p>
     <h1 class="v-h sm" data-in="0.2,0.6">A person types the winner's name.</h1>
     <div class="v-two"><div class="v-code" data-in="0.5,0.6"><div class="cap">The only way a prompt ships</div><pre>${hl(shipCode, [1, 2])}</pre></div>
-      <div class="v-tests" data-in="${o.v + 3.4},0.6">${tests.filter((tl) => /identity cookie|decision|guard|^# /.test(tl)).map((tl) => `<div class="${/decision/.test(tl) ? "hot" : tl.startsWith("ok") ? "ok" : ""}">${esc(tl.replace(/^ok \d+ - /, "✓ "))}</div>`).join("")}</div></div></div>`, { min: 10 }),
+      <div class="v-tests" data-in="${o.v + 3.4},0.6">${tests.filter((tl) => /identity cookie|decision|guard|^# /.test(tl)).map((tl) => `<div class="${/decision/.test(tl) ? "hot" : tl.startsWith("ok") ? "ok" : ""}">${esc(tl.replace(/^ok \d+ - /, "✓ ").slice(0, 74))}</div>`).join("")}</div></div></div>`, { min: 10 }),
   textUnit("u10p", ["10"], (o) => {
-    const ok = [["13 unit tests pass", 2.5], ["The whole flow ran in a real browser, desktop and phone", 4.6], ["Security headers, and refused cross-site and forged votes", 5.9], ["npm run smoke: 9 of 9 against a production build", 6.0]];
-    const no = [["A warehouse connection", 7.6], ["Events from a live deployment", 9.0], ["A single real result", 10.9]];
+    const ok = [[`${TESTS} unit tests pass`, wordAt(10, "23", 1, 2.5)], ["The whole flow ran in a real browser, desktop and phone", wordAt(10, "browser", 1, 4.6)], ["Setup ran on our real Flagsmith project: warehouse connected, experiment 1048 created", wordAt(10, "setup", 1, 6)], ["Security headers, and refused cross-site and forged votes", wordAt(10, "setup", 1, 6) + 1.4]];
+    const no = [["Events arriving from the live site", wordAt(10, "events", 1, 9)], ["A single real result", wordAt(10, "result", 1, 11)], ["Shipping a winner for real", wordAt(10, "shipping", 1, 12)]];
     const li = (arr) => arr.map(([t, at]) => `<li data-in="${o.v + at},0.5">${esc(t)}</li>`).join("");
     return `<div class="v"><p class="v-eyebrow" data-in="0.1,0.5" data-fx="fade">Honest status</p>
       <h1 class="v-h sm" data-in="0.2,0.6">Proven, and not yet.</h1>
       <div class="v-pv"><div class="v-col ok" data-in="0.4,0.6"><h3>Proven</h3><ul>${li(ok)}</ul></div>
-        <div class="v-col no" data-in="${o.v + 6.4},0.6"><h3>Not yet</h3><ul>${li(no)}</ul></div></div></div>`;
+        <div class="v-col no" data-in="${o.v + wordAt(10, "yet", 1, 8) - 0.2},0.6"><h3>Not yet</h3><ul>${li(no)}</ul></div></div></div>`;
   }, { min: 18 }),
   textUnit("u11n", ["11"], (o) => `<div class="v">
     <p class="v-eyebrow" data-in="0.1,0.5" data-fx="fade">The repository, counted at render time</p>
     <h1 class="v-h sm" data-in="0.2,0.6">Built in the open.</h1>
     <div class="v-stats">
-      <div class="v-stat" data-in="0.5,0.6"><b data-count="${o.v + 0.5},1.1,${COMMITS}">0</b><span>commits</span><em>git rev-list --count HEAD</em></div>
-      <div class="v-stat" data-in="0.7,0.6"><b data-count="${o.v + 1.6},1.1,${TESTS}">0</b><span>tests</span><em>npm test</em></div>
-      <div class="v-stat" data-in="0.9,0.6"><b data-count="${o.v + 3.1},1.1,${CONTROLS}">0</b><span>safety controls</span><em>each with its proof in docs/safety.md</em></div>
+      <div class="v-stat" data-in="0.5,0.6"><b data-count="${o.v + wordAt(11, "100", 1, 0.5)},1.1,${COMMITS}">0</b><span>commits</span><em>git rev-list --count HEAD</em></div>
+      <div class="v-stat" data-in="0.7,0.6"><b data-count="${o.v + wordAt(11, "23", 1, 1.6)},1.0,${TESTS}">0</b><span>tests</span><em>npm test</em></div>
+      <div class="v-stat" data-in="0.9,0.6"><b data-count="${o.v + wordAt(11, "18", 1, 3.1)},1.0,${CONTROLS}">0</b><span>safety controls</span><em>each with its proof in docs/safety.md</em></div>
     </div></div>`, { min: 9 }),
   textUnit("u12", ["12"], (o) => `<div class="v" data-out="${o.v + 4.6},0.35">
     <p class="v-eyebrow" data-in="0.1,0.5" data-fx="fade">kit/winnow-kit.ts · for anyone's prompts</p>
@@ -406,6 +422,7 @@ async function main() {
       }, { html: u.build(u), css: SCENE_CSS });
     }
     await page.addScriptTag({ content: PAGE_HELPERS });
+    if (u.kind === "app") await page.addStyleTag({ content: ".flyer{display:none!important}" });
     await page.evaluate((c) => window.__dipColor(c), u.dip ?? "#fff7ea");
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => window.__seek(0));
@@ -454,6 +471,25 @@ async function main() {
         }
         if (cur) { const press = plan.presses.some((p) => t >= p && t < p + 0.18); cur = { x: cur.x - 6, y: cur.y - 4, s: press ? 0.82 : 1 }; }
         await page.evaluate((c) => window.__overlay({ dip: 0, chip: null, cursor: c }), cur);
+        // The vote lands: the app animates this on a real-time timer, which a frame-by-frame render cannot follow, so the
+        // same flight is drawn here from the video's own clock (0.9 s, starting when the reveal has settled).
+        await page.evaluate(([tt, t0]) => {
+          let el = document.getElementById("__fly");
+          const from = document.querySelector(".stamp.grain"), to = document.querySelector(".reveal .variant");
+          const p = (tt - t0) / 0.9;
+          if (!from || !to || p < 0 || p > 1) { if (el) el.style.display = "none"; return; }
+          if (!el) {
+            el = document.createElement("div"); el.id = "__fly";
+            el.style.cssText = "position:fixed;left:0;top:0;width:18px;height:26px;z-index:60;pointer-events:none;border-radius:50%;border:2.5px solid #0b1533;background:#19c79a";
+            document.body.appendChild(el);
+          }
+          const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+          const x0 = a.left + a.width / 2 - 9, y0 = a.top + a.height / 2 - 13, x1 = b.left + 14, y1 = b.top + b.height / 2 - 13;
+          const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+          const arc = Math.sin(Math.PI * e) * 70;
+          el.style.display = "block";
+          el.style.transform = `translate(${x0 + (x1 - x0) * e}px, ${y0 + (y1 - y0) * e - arc}px) scale(${1.5 - 0.65 * e}) rotate(${330 * e}deg)`;
+        }, [t, plan.grain + 0.85]);
       }
       if (u.id === "u8r") {
         const band = clamp01((t - (u.subs[0].voAt + 1.6)) / 0.6);
