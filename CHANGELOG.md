@@ -2,6 +2,19 @@
 
 Dates are UTC. Versions are this repository's own; they are not published anywhere.
 
+## v0.10.0 — 27 Nov 2026 (the home page shows the experiment)
+
+Added
+- **The live floor in the hero**: three baskets with piles as tall as each prompt's like rate and, under each treatment, its chance of
+  beating control, from the same snapshot as `/race`; an honest empty state with no results. On narrow screens it moves below the input.
+- **Your vote lands**: a kernel flies from the stamp to the prompt you tasted. The roast wipes in. A strip of paper waves sits under
+  the hero. All of it respects reduced motion and moves by transform and opacity only.
+
+Changed
+- The headline is smaller inside the two-column hero so it stays on three lines; the footer is full-bleed; on phones the nav hides
+  its first button instead of wrapping onto the logo.
+- The README's home-page image and the deck were rebuilt from the new page, in its empty state (what a deployment shows today).
+
 ## v0.9.0 — 27 Nov 2026 (an AI judge, kept honest)
 
 Added

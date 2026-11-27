@@ -8,7 +8,7 @@
 
 **Let your users pick the winning prompt.**
 
-![Winnow home page: "Paste your README. Get roasted." with the README input and the winnowing basket](docs/assets/home.png)
+![Winnow home page: the headline, and the live floor with three baskets (empty here: no votes yet), above the paper-wave strip](docs/assets/home.png)
 
 Winnow is a README roaster that runs a real A/B test on LLM prompts. Every visitor silently gets one of three roast
 prompts from a multivariate Flagsmith flag. They vote **grain** (keep it) or **chaff** (toss it), and Flagsmith's Bayesian
@@ -82,6 +82,8 @@ per arm, then run `npm run ship -- --dry-run`. It prints the exact `flagsmith fl
 - **The decision rule is pre-registered and hashed.** `prereg/experiment-1.md` is written before any data, hashed, and tagged;
   the experiment's hypothesis in Flagsmith is its text word for word, and the setup refuses to start an experiment whose
   file has changed since it was hashed. The habit comes from a teammate's repo, [Fork in the Bill](https://github.com/Prashant-thakur77/fork-in-the-bill).
+- **The home page shows the experiment.** The first screen carries the live floor: three baskets, with piles as tall as each
+  prompt's like rate and, under each treatment, its chance of beating control. Your vote then visibly lands in the prompt you tasted.
 - **An AI judge, kept honest.** Before any visitor, an LLM scores what each prompt produces on six sample READMEs; afterwards `/race`
   shows whether the judge's favourite matched the visitors'. It is labelled as not Flagsmith data, cannot ship anything, and
   says that three prompts make one comparison, not a measure ([docs/judge.md](docs/judge.md)).

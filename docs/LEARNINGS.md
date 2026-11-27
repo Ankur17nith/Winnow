@@ -81,3 +81,13 @@ broke, surprised you, or changed a decision, and say what the code does about it
 - **A fallback in a one-liner swallowed uncommitted work.** `git checkout <file> || git stash` was meant to undo a test edit;
   the file was untracked, the checkout failed, and the stash took every uncommitted change with it. `git stash pop` restored
   all of it. Do not write a destructive fallback after `||`.
+- **Decoration behind text is a mistake, even when it looks fine in the abstract.** The first attempt at depth put two large translucent
+  paper sheets behind the hero headline. In the screenshot they were a blunt block with hard edges that lowered the text's contrast.
+  Replaced by a strip *under* the text. Review the actual pixels, not the idea.
+- **A teammate's hero beat ours on the first screen.** His board shows the whole experiment above the fold; ours showed a headline and
+  empty space, with the experiment far down the page. The fix was not more decoration but moving the real data (the live floor) into
+  the hero, and moving it *below* the input on phones, where the action matters more than the display.
+- **A stale server fooled the first screenshots.** `pkill -f "next start"` does not match the running `next-server` process, so an old
+  server on the same port kept serving HTML that pointed at deleted build files (the console showed a CSS MIME-type error). Kill
+  `next-server`, use a fresh port per run, and treat any console error as a reason to distrust the picture.
+

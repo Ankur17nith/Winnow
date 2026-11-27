@@ -15,6 +15,7 @@ yet, so no result exists. The steps that need accounts are in [human-runbook.md]
 | `npm run smoke` | 9 of 9 checks pass against a local production build (preview mode) |
 | `npm run ship` | `--dry-run` prints the right `flagsmith flag update --weight` command; typing anything but the winner's name cancels; simulated data never ships (unit test) |
 | `npm run setup:flagsmith` | `--dry-run` prints every CLI call and JSON body; the bodies match the format in Flagsmith's own coding-agent setup prompt |
+| Home page: live floor in the hero, wave strip, roast wipe, vote landing | Rendered in headless Chromium at 1440 and 390 px with a simulated snapshot and with none; no console errors, no horizontal overflow on mobile; the kernel flight was observed in flight in screenshots taken during the animation |
 | Remote prompts, split check, plain-English explanation | Unit-tested (`resolvePrompt`, `splitCheck`, `explain`); the race page rendered in Chromium with a simulated snapshot showing the explanation and a passing split check |
 | Flagsmith SDK calls | `getExperimentFlag`, `trackEvent`, `flushEvents`, `close` and `Flag.variant` read from `@flagsmith/nodejs` 9.4.0's type definitions |
 | Flagsmith CLI commands | Every command the scripts run was checked against the CLI's own `--help` (v2, installed from npm in the sandbox) |

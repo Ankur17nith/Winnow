@@ -63,6 +63,22 @@ labels are **Grain** (keep it) and **Chaff** (toss it), drawn as printed stamps,
    is always labelled with `sim`.
 7. **Footer.** Paper-wave strip into deep sea, big wordmark, links to the repo, the Flagsmith project and the hackathon.
 
+## What the home page does (built 27 Nov)
+
+The first screen carries the experiment, not just a headline: the headline on the left, and on the right **the live floor**,
+three baskets (control, savage, actionable) with a pile under each as tall as the share of visitors who liked that prompt, and
+under each treatment Flagsmith's chance of beating control. It reads the same snapshot as `/race`. With no snapshot the piles are
+empty and say "no votes yet": nothing is invented. On narrow screens the floor moves to *after* the input, because the input is
+the action and the floor is the display.
+
+- **A strip of paper waves** (gold, orange, sea blue, each with a 3 px ink edge) sits under the hero text and drifts by transform.
+  An earlier version put big translucent sheets *behind* the headline; they hurt contrast and read as a blunt block, so they are
+  gone. Decoration never sits behind text that has to be read.
+- **The roast wipes in** (a clip-path reveal) instead of appearing.
+- **Your vote lands.** After voting, a kernel (or a bit of chaff) flies from the stamp you pressed to the prompt you tasted and the
+  name pulses. It waits for the reveal's entrance to settle, and is skipped under reduced motion.
+- **The footer and the wave strip are full-bleed;** the content keeps its column.
+
 ## Graphics (all made for Winnow)
 
 - Basket, kernels, chaff, stamps, paper sheets and the sun: hand-built inline SVG with fine grain, halftone and a
